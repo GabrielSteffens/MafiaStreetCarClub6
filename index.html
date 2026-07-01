@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAFIA - STREET CAR CLUB | Painel de Gestão</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- ChartJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <i class="fas fa-car"></i>
+          <div>
+            MAFIA
+            <span class="brand-subtitle">STREET CAR CLUB</span>
+          </div>
+        </div>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li>
+          <div class="menu-item active" data-module="dashboard" id="nav-dashboard">
+            <i class="fas fa-th-large"></i>
+            <span>Painel</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="members" id="nav-members">
+            <i class="fas fa-users"></i>
+            <span>Membros</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="recruitment" id="nav-recruitment">
+            <i class="fas fa-user-plus"></i>
+            <span>Recrutamento</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="operations" id="nav-operations">
+            <i class="fas fa-crosshairs"></i>
+            <span>Operações</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="treasury" id="nav-treasury">
+            <i class="fas fa-wallet"></i>
+            <span>Tesouraria</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="vehicles" id="nav-vehicles">
+            <i class="fas fa-car-side"></i>
+            <span>Veículos</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="equipment" id="nav-equipment">
+            <i class="fas fa-shield-alt"></i>
+            <span>Equipamentos</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="properties" id="nav-properties">
+            <i class="fas fa-building"></i>
+            <span>Propriedades</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="meetings" id="nav-meetings">
+            <i class="fas fa-handshake"></i>
+            <span>Reuniões</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="activities" id="nav-activities">
+            <i class="fas fa-history"></i>
+            <span>Atividades</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="reports" id="nav-reports">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <span>Relatórios</span>
+          </div>
+        </li>
+        <li>
+          <div class="menu-item" data-module="settings" id="nav-settings">
+            <i class="fas fa-sliders-h"></i>
+            <span>Configurações</span>
+          </div>
+        </li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" alt="Avatar Admin" class="user-avatar-mini" id="admin-mini-avatar">
+        <div class="user-info-mini">
+          <div class="user-name-mini" id="admin-mini-name">Vito Scaletta</div>
+          <div class="user-role-mini">Caporegime</div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Main Content Panel Wrapper -->
+    <main class="main-wrapper">
+      
+      <!-- Top Navigation Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="page-title-container">
+            <h1 id="module-title">Visão Geral</h1>
+          </div>
+        </div>
+        
+        <div class="topbar-right">
+          <div class="topbar-stats">
+            <div class="topbar-stat-item">
+              <span class="topbar-stat-label">Tesouraria</span>
+              <span class="topbar-stat-value accent" id="topbar-treasury-val">$324,500</span>
+            </div>
+            <div class="topbar-stat-item">
+              <span class="topbar-stat-label">Operações Ativas</span>
+              <span class="topbar-stat-value" id="topbar-ops-val">2</span>
+            </div>
+          </div>
+          
+          <div class="clock-widget">
+            <i class="far fa-clock"></i>
+            <span id="current-time">17:38:49</span>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Content Body where modules mount dynamically -->
+      <section class="content-body" id="content-body">
+        
+        <!-- ==================== DASHBOARD MODULE ==================== -->
+        <div id="module-dashboard" class="module-panel active">
+          <div class="dashboard-grid">
+            <div class="premium-card accent-header">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Membros Totais</span>
+                <div class="stat-card-icon"><i class="fas fa-users"></i></div>
+              </div>
+              <div class="stat-card-value" id="dash-total-members">14</div>
+              <div class="stat-card-trend trend-up">
+                <i class="fas fa-arrow-up"></i> <span>+2 este mês</span>
+              </div>
+            </div>
+            
+            <div class="premium-card accent-header">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Membros Ativos</span>
+                <div class="stat-card-icon"><i class="fas fa-user-check"></i></div>
+              </div>
+              <div class="stat-card-value" id="dash-active-members">11</div>
+              <div class="stat-card-trend trend-neutral">
+                <i class="fas fa-minus"></i> <span>Estável</span>
+              </div>
+            </div>
+            
+            <div class="premium-card accent-header">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Recrutamento Pendente</span>
+                <div class="stat-card-icon"><i class="fas fa-user-plus"></i></div>
+              </div>
+              <div class="stat-card-value" id="dash-pending-recruit">3</div>
+              <div class="stat-card-trend trend-up">
+                <i class="fas fa-arrow-up"></i> <span>Em análise</span>
+              </div>
+            </div>
+
+            <div class="premium-card accent-header">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Operações Ativas</span>
+                <div class="stat-card-icon"><i class="fas fa-crosshairs"></i></div>
+              </div>
+              <div class="stat-card-value" id="dash-active-operations">2</div>
+              <div class="stat-card-trend trend-down">
+                <i class="fas fa-arrow-down"></i> <span>1 concluída hoje</span>
+              </div>
+            </div>
+            
+            <div class="premium-card accent-header">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Saldo da Tesouraria</span>
+                <div class="stat-card-icon"><i class="fas fa-wallet"></i></div>
+              </div>
+              <div class="stat-card-value" id="dash-treasury-balance">$324,500</div>
+              <div class="stat-card-trend trend-up">
+                <i class="fas fa-arrow-up"></i> <span>+$14,200 esta semana</span>
+              </div>
+            </div>
+            
+            <div class="premium-card accent-header">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Frota de Veículos</span>
+                <div class="stat-card-icon"><i class="fas fa-car-side"></i></div>
+              </div>
+              <div class="stat-card-value" id="dash-total-vehicles">18</div>
+              <div class="stat-card-trend trend-up">
+                <i class="fas fa-plus"></i> <span>2 novos adicionados</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-8">
+              <div class="premium-card">
+                <div class="panel-header">
+                  <h3 class="panel-title"><i class="fas fa-chart-line"></i> Fluxo de Caixa e Atividade do Clube</h3>
+                </div>
+                <div style="height: 300px; position: relative;">
+                  <canvas id="dashboard-main-chart"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-4">
+              <div class="premium-card">
+                <div class="panel-header">
+                  <h3 class="panel-title"><i class="fas fa-bell"></i> Atividades Recentes</h3>
+                </div>
+                <div class="timeline-log" id="dashboard-recent-activities" style="max-height: 300px; overflow-y: auto;">
+                  <!-- Carregado via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ==================== MEMBERS MODULE ==================== -->
+        <div id="module-members" class="module-panel">
+          <div class="members-split-layout">
+            
+            <!-- Members Left Side List -->
+            <div class="members-list-panel">
+              <div class="members-search-box">
+                <div class="search-input-wrapper">
+                  <i class="fas fa-search"></i>
+                  <input type="text" placeholder="Buscar membros..." class="search-input" id="member-search">
+                </div>
+              </div>
+              
+              <div class="filter-row">
+                <select class="filter-select" id="member-filter-rank">
+                  <option value="">Todos os Cargos</option>
+                  <option value="Boss">Chefe (Boss)</option>
+                  <option value="Underboss">Subchefe (Underboss)</option>
+                  <option value="Caporegime">Caporegime</option>
+                  <option value="Soldier">Soldado (Soldier)</option>
+                  <option value="Associate">Associado (Associate)</option>
+                </select>
+                <select class="filter-select" id="member-filter-status">
+                  <option value="">Todos os Status</option>
+                  <option value="Active">Ativo</option>
+                  <option value="Inactive">Inativo</option>
+                </select>
+              </div>
+              
+              <div class="members-scroll-area" id="members-list-container">
+                <!-- Carregado via JS -->
+              </div>
+              
+              <button class="btn btn-primary btn-lg" style="margin-top: 15px; width: 100%;" id="btn-open-new-member">
+                <i class="fas fa-user-plus"></i> + Novo Membro
+              </button>
+            </div>
+            
+            <!-- Members Right Side Detail View -->
+            <div class="members-detail-panel" id="member-detail-container">
+              <!-- Rendered Dynamically -->
+              <div class="premium-card" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                <i class="fas fa-users-cog" style="font-size: 3rem; margin-bottom: 15px; color: var(--border-color-hover);"></i>
+                <p>Selecione um membro na lista lateral para visualizar seu dossiê completo.</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <!-- ==================== RECRUITMENT MODULE ==================== -->
+        <div id="module-recruitment" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-user-plus"></i> Funil de Recrutamento</h2>
+            <button class="btn btn-primary" id="btn-open-new-recruit"><i class="fas fa-plus"></i> Adicionar Candidato</button>
+          </div>
+          
+          <div class="recruitment-grid" id="recruitment-grid-container">
+            <!-- Carregado via JS -->
+          </div>
+        </div>
+        
+        <!-- ==================== OPERATIONS MODULE ==================== -->
+        <div id="module-operations" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-crosshairs"></i> Centro de Operações Táticas</h2>
+            <button class="btn btn-primary" id="btn-open-new-operation"><i class="fas fa-bullseye"></i> Iniciar Operação</button>
+          </div>
+          
+          <div class="operations-grid" id="operations-grid-container">
+            <!-- Carregado via JS -->
+          </div>
+        </div>
+        
+        <!-- ==================== TREASURY MODULE ==================== -->
+        <div id="module-treasury" class="module-panel">
+          <div class="treasury-stats-grid">
+            <div class="premium-card">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Saldo Total do Cofre</span>
+                <div class="stat-card-icon"><i class="fas fa-coins"></i></div>
+              </div>
+              <div class="stat-card-value" id="treasury-balance-val">$324,500</div>
+              <div class="stat-card-trend trend-up">
+                <i class="fas fa-shield-alt"></i> <span>Cofre Protegido</span>
+              </div>
+            </div>
+            
+            <div class="premium-card">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Receitas do Mês</span>
+                <div class="stat-card-icon"><i class="fas fa-arrow-down-long"></i></div>
+              </div>
+              <div class="stat-card-value" id="treasury-income-val">$58,200</div>
+              <div class="stat-card-trend trend-up">
+                <i class="fas fa-arrow-up"></i> <span>+18% em relação ao mês anterior</span>
+              </div>
+            </div>
+            
+            <div class="premium-card">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Despesas do Mês</span>
+                <div class="stat-card-icon"><i class="fas fa-arrow-up-long"></i></div>
+              </div>
+              <div class="stat-card-value" id="treasury-expenses-val">$23,700</div>
+              <div class="stat-card-trend trend-down">
+                <i class="fas fa-arrow-down"></i> <span>-5% redução de custos</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="treasury-panel-row">
+            <div class="premium-card">
+              <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-list"></i> Registro de Transações (Livro Razão)</h3>
+                <button class="btn btn-primary btn-sm" id="btn-open-new-transaction"><i class="fas fa-plus"></i> Registrar Transação</button>
+              </div>
+              
+              <div class="custom-table-container">
+                <table class="custom-table" id="treasury-table">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Tipo</th>
+                      <th>Descrição</th>
+                      <th>Membro Responsável</th>
+                      <th>Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody id="treasury-transactions-body">
+                    <!-- Carregado via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div class="premium-card">
+              <div class="panel-header">
+                <h3 class="panel-title"><i class="fas fa-chart-pie"></i> Distribuição de Recursos</h3>
+              </div>
+              <div style="height: 250px; position: relative;">
+                <canvas id="treasury-pie-chart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ==================== VEHICLES MODULE ==================== -->
+        <div id="module-vehicles" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-car-side"></i> Frota Registrada do Clube</h2>
+            <button class="btn btn-primary" id="btn-open-new-vehicle"><i class="fas fa-plus"></i> Adicionar Veículo</button>
+          </div>
+          
+          <div class="vehicles-grid" id="vehicles-grid-container">
+            <!-- Carregado via JS -->
+          </div>
+        </div>
+        
+        <!-- ==================== EQUIPMENT MODULE ==================== -->
+        <div id="module-equipment" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-shield-alt"></i> Inventário de Armamentos & Equipamentos</h2>
+            <button class="btn btn-primary" id="btn-open-new-equipment"><i class="fas fa-plus"></i> Adicionar Item</button>
+          </div>
+          
+          <div class="equipment-grid" id="equipment-grid-container">
+            <!-- Carregado via JS -->
+          </div>
+        </div>
+        
+        <!-- ==================== PROPERTIES MODULE ==================== -->
+        <div id="module-properties" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-building"></i> Casas Seguras & Imóveis do Sindicato</h2>
+            <button class="btn btn-primary" id="btn-open-new-property"><i class="fas fa-plus"></i> Registrar Imóvel</button>
+          </div>
+          
+          <div class="properties-grid" id="properties-grid-container">
+            <!-- Carregado via JS -->
+          </div>
+        </div>
+        
+        <!-- ==================== MEETINGS MODULE ==================== -->
+        <div id="module-meetings" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-handshake"></i> Cronograma de Reuniões</h2>
+            <button class="btn btn-primary" id="btn-open-new-meeting"><i class="fas fa-calendar-plus"></i> Agendar Reunião</button>
+          </div>
+          
+          <div class="custom-table-container">
+            <table class="custom-table" id="meetings-table">
+              <thead>
+                <tr>
+                  <th>Assunto / Tópico</th>
+                  <th>Data e Hora</th>
+                  <th>Localização</th>
+                  <th>Participantes</th>
+                  <th>Presença</th>
+                  <th>Notas</th>
+                </tr>
+              </thead>
+              <tbody id="meetings-table-body">
+                <!-- Carregado via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- ==================== ACTIVITIES MODULE ==================== -->
+        <div id="module-activities" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-history"></i> Log Geral de Auditoria</h2>
+            <button class="btn btn-secondary btn-sm" id="btn-clear-activities"><i class="fas fa-trash-alt"></i> Limpar Histórico</button>
+          </div>
+          
+          <div class="premium-card">
+            <div class="timeline-log" id="activities-timeline-container" style="max-height: 500px; overflow-y: auto;">
+              <!-- Carregado via JS -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- ==================== REPORTS MODULE ==================== -->
+        <div id="module-reports" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-file-invoice-dollar"></i> Gerador de Relatórios e Dossiês</h2>
+          </div>
+          
+          <div class="reports-layout">
+            <!-- Left Options Sidebar -->
+            <div class="reports-sidebar">
+              <div class="report-type-card active" data-report-type="members">
+                <div class="report-type-icon"><i class="fas fa-users"></i></div>
+                <div class="report-type-info">
+                  <div class="report-type-title">Dossiê dos Membros</div>
+                  <div class="report-type-desc">Listagem do efetivo, cargos e nível de lealdade.</div>
+                </div>
+              </div>
+              
+              <div class="report-type-card" data-report-type="operations">
+                <div class="report-type-icon"><i class="fas fa-crosshairs"></i></div>
+                <div class="report-type-info">
+                  <div class="report-type-title">Análise Operacional</div>
+                  <div class="report-type-desc">Resumo tático das missões concluídas, ativas e planejadas.</div>
+                </div>
+              </div>
+              
+              <div class="report-type-card" data-report-type="treasury">
+                <div class="report-type-icon"><i class="fas fa-wallet"></i></div>
+                <div class="report-type-info">
+                  <div class="report-type-title">Balancete da Tesouraria</div>
+                  <div class="report-type-desc">Entradas, saídas de caixa e auditorias financeiras.</div>
+                </div>
+              </div>
+              
+              <div class="report-type-card" data-report-type="recruitment">
+                <div class="report-type-icon"><i class="fas fa-user-plus"></i></div>
+                <div class="report-type-info">
+                  <div class="report-type-title">Fila de Recrutamento</div>
+                  <div class="report-type-desc">Candidatos inscritos e avaliações de missões.</div>
+                </div>
+              </div>
+              
+              <div class="report-type-card" data-report-type="equipment">
+                <div class="report-type-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="report-type-info">
+                  <div class="report-type-title">Inventário de Armamentos</div>
+                  <div class="report-type-desc">Controle de estoque, custódia e estado de conservação.</div>
+                </div>
+              </div>
+              
+              <div class="report-export-options">
+                <button class="btn btn-primary" id="btn-export-pdf"><i class="far fa-file-pdf"></i> Exportar PDF</button>
+                <button class="btn btn-success" id="btn-export-excel"><i class="far fa-file-excel"></i> Exportar Excel</button>
+              </div>
+            </div>
+            
+            <!-- Right Document Preview -->
+            <div class="report-preview-panel">
+              <div class="report-preview-header">
+                <div class="report-preview-org">MAFIA STREET CLUB</div>
+                <div class="report-preview-meta">
+                  Data: <span id="report-date-meta">01/07/2026</span><br>
+                  Segurança: <span style="color: var(--accent-color-hover); font-weight: 700;">CONFIDENCIAL</span>
+                </div>
+              </div>
+              <div class="report-preview-title" id="report-preview-title">Dossiê dos Membros</div>
+              <div class="report-preview-content" id="report-preview-body">
+                <!-- Carregado via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ==================== SETTINGS MODULE ==================== -->
+        <div id="module-settings" class="module-panel">
+          <div class="row">
+            <div class="col-6">
+              <div class="settings-section-card">
+                <h3 class="settings-section-title"><i class="fas fa-sliders-h"></i> Parâmetros do Sindicato</h3>
+                <div class="form-group-grid" style="grid-template-columns: 1fr;">
+                  <div class="form-control-wrapper">
+                    <label class="form-label">Nome do Clube / Sindicato</label>
+                    <input type="text" class="form-input" id="setting-club-name" value="MAFIA - STREET CAR CLUB">
+                  </div>
+                  <div class="form-control-wrapper">
+                    <label class="form-label">Nome do Administrador Principal</label>
+                    <input type="text" class="form-input" id="setting-admin-name" value="Vito Scaletta">
+                  </div>
+                  <div class="form-control-wrapper">
+                    <label class="form-label">URL da Foto do Admin</label>
+                    <input type="text" class="form-input" id="setting-admin-avatar" value="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100">
+                  </div>
+                  <button class="btn btn-primary" id="btn-save-settings" style="margin-top: 10px;"><i class="fas fa-save"></i> Salvar Configurações</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-6">
+              <div class="settings-section-card">
+                <h3 class="settings-section-title"><i class="fas fa-tools"></i> Ações do Desenvolvedor e Mock</h3>
+                <div class="form-group-grid" style="grid-template-columns: 1fr;">
+                  <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+                    Ao modificar a base de simulação, você pode restaurar todos os dossiês e históricos iniciais de fábrica aqui. Isso substituirá os registros salvos no LocalStorage.
+                  </p>
+                  <button class="btn btn-danger" id="btn-reset-data" style="margin-top: 10px;"><i class="fas fa-undo"></i> Restaurar Banco de Dados Inicial</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </section>
+    </main>
+  </div>
+  
+  
+  <!-- ==================== MODALS AND POPUPS ==================== -->
+  
+  <!-- 1. NEW MEMBER MODAL -->
+  <div class="modal-overlay" id="modal-new-member">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-users-cog"></i> + Registrar Novo Membro no Sindicato</h3>
+        <button class="modal-close" data-close-modal="modal-new-member"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-member">
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px;"><i class="fas fa-id-card"></i> Informações Pessoais</h4>
+          <div class="form-group-grid">
+            <div class="form-control-wrapper">
+              <label class="form-label">Nome Completo *</label>
+              <input type="text" class="form-input" id="m-full-name" required placeholder="Ex: Vito Scaletta">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Apelido / Codinome</label>
+              <input type="text" class="form-input" id="m-nickname" placeholder="Ex: The Driver">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Telefone</label>
+              <input type="text" class="form-input" id="m-phone" placeholder="Ex: 555-0199">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Usuário Discord</label>
+              <input type="text" class="form-input" id="m-discord" placeholder="Ex: vito#0001">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">E-mail</label>
+              <input type="email" class="form-input" id="m-email" placeholder="Ex: vito@mafia.net">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Data de Nascimento</label>
+              <input type="date" class="form-input" id="m-dob">
+            </div>
+            <div class="form-control-wrapper form-group-full">
+              <label class="form-label">Endereço Residencial</label>
+              <input type="text" class="form-input" id="m-address" placeholder="Ex: Empire Bay St 10">
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-shield-alt"></i> Informações do Clube</h4>
+          <div class="form-group-grid-3">
+            <div class="form-control-wrapper">
+              <label class="form-label">Cargo / Rank *</label>
+              <select class="form-select" id="m-rank" required>
+                <option value="Associate">Associado (Associate)</option>
+                <option value="Soldier">Soldado (Soldier)</option>
+                <option value="Caporegime">Caporegime</option>
+                <option value="Underboss">Subchefe (Underboss)</option>
+                <option value="Boss">Chefe (Boss)</option>
+              </select>
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Recrutado por</label>
+              <input type="text" class="form-input" id="m-recruiter" placeholder="Ex: Vito">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Data de Entrada</label>
+              <input type="date" class="form-input" id="m-join-date">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Nível de Confiança (1 - 100)</label>
+              <input type="number" class="form-input" id="m-trust" min="1" max="100" value="50">
+            </div>
+            <div class="form-control-wrapper switch-wrapper" style="grid-column: span 2; margin-top: 20px;">
+              <span class="form-label">Status da Matrícula:</span>
+              <label class="switch">
+                <input type="checkbox" id="m-status-toggle" checked>
+                <span class="slider"></span>
+              </label>
+              <span id="m-status-text" style="font-size: 0.85rem; font-weight: 700; color: #4CAF50;">Ativo</span>
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-image"></i> Foto de Perfil</h4>
+          <div class="form-group-grid" style="grid-template-columns: 1fr;">
+            <div class="photo-upload-container" id="m-photo-upload-box">
+              <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
+              <span class="photo-upload-text">Arraste e solte a foto de perfil ou clique para <span>procurar</span></span>
+              <img src="" alt="Prévia" class="photo-upload-preview" id="m-photo-preview">
+              <input type="file" class="photo-upload-file-input" id="m-photo-input" accept="image/*">
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-car"></i> Veículos Registrados</h4>
+          <div id="m-form-vehicles-container" class="form-vehicles-list">
+            <!-- Inserido dinamicamente -->
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-m-add-vehicle-row" style="margin-bottom: 20px;">
+            <i class="fas fa-plus"></i> Adicionar Veículo
+          </button>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 15px;"><i class="fas fa-suitcase"></i> Equipamentos Designados e Notas</h4>
+          <div class="form-group-grid">
+            <div class="form-control-wrapper form-group-full">
+              <label class="form-label">Equipamentos Fornecidos (Separados por vírgula)</label>
+              <input type="text" class="form-input" id="m-equipment" placeholder="Ex: Rádio Transceptor, Colete Balístico, Revólver">
+            </div>
+            <div class="form-control-wrapper form-group-full">
+              <label class="form-label">Observações do Dossiê</label>
+              <textarea class="form-textarea" id="m-notes" placeholder="Detalhes táticos sobre o perfil do membro..."></textarea>
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-member">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Dossiê</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- 2. NEW RECRUIT MODAL -->
+  <div class="modal-overlay" id="modal-new-recruit">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-user-plus"></i> Cadastrar Perfil de Candidato</h3>
+        <button class="modal-close" data-close-modal="modal-new-recruit"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-recruit">
+          <div class="form-group-grid">
+            <div class="form-control-wrapper">
+              <label class="form-label">Nome Completo *</label>
+              <input type="text" class="form-input" id="r-full-name" required placeholder="Ex: Joe Barbaro">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Apelido / Codinome</label>
+              <input type="text" class="form-input" id="r-nickname" placeholder="Ex: Joey">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Telefone</label>
+              <input type="text" class="form-input" id="r-phone" placeholder="555-0122">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Usuário Discord</label>
+              <input type="text" class="form-input" id="r-discord" placeholder="joe#9812">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Idade</label>
+              <input type="number" class="form-input" id="r-age" min="18" max="100" value="25">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Recrutador Responsável</label>
+              <input type="text" class="form-input" id="r-recruiter" placeholder="Vito Scaletta">
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-calendar-alt"></i> Agendamento & Veículo de Missão</h4>
+          <div class="form-group-grid-3">
+            <div class="form-control-wrapper">
+              <label class="form-label">Data da Reunião</label>
+              <input type="date" class="form-input" id="r-meet-date">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Hora da Reunião</label>
+              <input type="time" class="form-input" id="r-meet-time">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Localização</label>
+              <input type="text" class="form-input" id="r-meet-loc" placeholder="Pátio da Sede">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Modelo do Veículo Usado</label>
+              <input type="text" class="form-input" id="r-vehicle-model" placeholder="Ford Sedan">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Cor do Veículo</label>
+              <input type="text" class="form-input" id="r-vehicle-color" placeholder="Preto">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Placa do Veículo</label>
+              <input type="text" class="form-input" id="r-vehicle-plate" placeholder="MAFIA-01">
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-crosshairs"></i> Missão de Avaliação Designada</h4>
+          <div class="form-group-grid" style="grid-template-columns: 1fr;">
+            <div class="form-control-wrapper">
+              <label class="form-label">Instruções / Escopo da Missão *</label>
+              <textarea class="form-textarea" id="r-mission" required placeholder="Descreva a atividade atribuída ao candidato (Ex: Transportar suprimentos sem chamar atenção.)"></textarea>
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 20px;"><i class="fas fa-toolbox"></i> Recursos & Materiais Fornecidos</h4>
+          <div class="checklist-grid">
+            <label class="checklist-item"><input type="checkbox" value="Rádio" class="r-materials-check"> Rádio</label>
+            <label class="checklist-item"><input type="checkbox" value="Arma" class="r-materials-check"> Arma</label>
+            <label class="checklist-item"><input type="checkbox" value="Munição" class="r-materials-check"> Munição</label>
+            <label class="checklist-item"><input type="checkbox" value="Veículo" class="r-materials-check"> Veículo</label>
+            <label class="checklist-item"><input type="checkbox" value="Dinheiro" class="r-materials-check"> Dinheiro</label>
+            <label class="checklist-item"><input type="checkbox" value="Documentos" class="r-materials-check"> Documentos</label>
+            <label class="checklist-item"><input type="checkbox" value="Chaves" class="r-materials-check"> Chaves</label>
+            <div class="form-control-wrapper" style="grid-column: span 2;">
+              <input type="text" class="form-input" id="r-custom-material" style="padding: 4px 8px; font-size: 0.75rem;" placeholder="Item customizado...">
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-image"></i> Imagem do Candidato</h4>
+          <div class="form-group-grid" style="grid-template-columns: 1fr;">
+            <div class="photo-upload-container" id="r-photo-upload-box">
+              <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
+              <span class="photo-upload-text">Enviar Imagem do Candidato</span>
+              <img src="" alt="Prévia" class="photo-upload-preview" id="r-photo-preview">
+              <input type="file" class="photo-upload-file-input" id="r-photo-input" accept="image/*">
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-recruit">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar Ficha</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- 3. LAUNCH OPERATION MODAL -->
+  <div class="modal-overlay" id="modal-new-operation">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-crosshairs"></i> Planejar Operação Tática</h3>
+        <button class="modal-close" data-close-modal="modal-new-operation"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-operation">
+          <h4 class="info-box-title" style="margin-bottom: 12px;"><i class="fas fa-bullseye"></i> Perfil e Detalhes do Alvo</h4>
+          <div class="form-group-grid">
+            <div class="form-control-wrapper">
+              <label class="form-label">Nome Completo do Alvo *</label>
+              <input type="text" class="form-input" id="o-target-name" required placeholder="Ex: Tommy Angelo">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Apelido / Vulgo do Alvo</label>
+              <input type="text" class="form-input" id="o-target-alias" placeholder="Ex: The Canary">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Telefone do Alvo</label>
+              <input type="text" class="form-input" id="o-target-phone" placeholder="555-2201">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Idade do Alvo</label>
+              <input type="number" class="form-input" id="o-target-age" min="18" max="100" value="30">
+            </div>
+            <div class="form-control-wrapper form-group-full">
+              <label class="form-label">Último Local Conhecido / Endereço</label>
+              <input type="text" class="form-input" id="o-target-location" placeholder="Ex: Grand Central Airport, Empire Bay">
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-image"></i> Foto de Vigilância do Alvo</h4>
+          <div class="form-group-grid" style="grid-template-columns: 1fr;">
+            <div class="photo-upload-container" id="o-photo-upload-box">
+              <i class="fas fa-camera photo-upload-icon"></i>
+              <span class="photo-upload-text">Upload da foto de vigilância</span>
+              <img src="" alt="Prévia" class="photo-upload-preview" id="o-photo-preview">
+              <input type="file" class="photo-upload-file-input" id="o-photo-input" accept="image/*">
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-file-alt"></i> Briefing Operacional & Nível de Ameaça</h4>
+          <div class="form-group-grid">
+            <div class="form-control-wrapper">
+              <label class="form-label">Título da Operação / Codinome *</label>
+              <input type="text" class="form-input" id="o-title" required placeholder="Ex: Operação Luva de Veludo">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Nível de Ameaça do Alvo</label>
+              <select class="form-select" id="o-threat-level">
+                <option value="Baixo">Baixo</option>
+                <option value="Médio">Médio</option>
+                <option value="Alto">Alto</option>
+                <option value="Crítico">Crítico</option>
+              </select>
+            </div>
+            <div class="form-control-wrapper form-group-full">
+              <label class="form-label">Justificativa / Razão de Ser Alvo</label>
+              <textarea class="form-textarea" id="o-reason" required placeholder="Escreva os motivos pelos quais esta pessoa se tornou um alvo..."></textarea>
+            </div>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 25px;"><i class="fas fa-users"></i> Equipe e Recursos Designados</h4>
+          <div class="form-group-grid-3">
+            <div class="form-control-wrapper span-3">
+              <label class="form-label">Membros Atribuídos (Nomes separados por vírgula)</label>
+              <input type="text" class="form-input" id="o-members" placeholder="Ex: Vito, Joe, Henry">
+            </div>
+            <div class="form-control-wrapper span-3">
+              <label class="form-label">Veículos Empregados (Modelo, placa - separados por vírgula)</label>
+              <input type="text" class="form-input" id="o-vehicles" placeholder="Ex: Smith Coupe (DRFT-88), Shubert Beverly">
+            </div>
+            <div class="form-control-wrapper span-3">
+              <label class="form-label">Equipamento Fornecido (Separados por vírgula)</label>
+              <input type="text" class="form-input" id="o-equipment" placeholder="Ex: Thompson SMG, Colete Balístico, Rádio Transceptor">
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-operation">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Lançar Missão</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- 4. RECORD TRANSACTION MODAL -->
+  <div class="modal-overlay" id="modal-new-transaction">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-wallet"></i> Lançamento Financeiro</h3>
+        <button class="modal-close" data-close-modal="modal-new-transaction"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-transaction">
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Tipo de Transação</label>
+            <select class="form-select" id="t-type" required>
+              <option value="Income">Receita (Depósito)</option>
+              <option value="Expense">Despesa (Pagamento)</option>
+              <option value="Donation">Doação</option>
+              <option value="Payroll">Folha de Pagamento</option>
+              <option value="Operation Cost">Custo Operacional</option>
+            </select>
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Descrição *</label>
+            <input type="text" class="form-input" id="t-desc" required placeholder="Ex: Receita Oficina de Tuning">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Membro Responsável</label>
+            <input type="text" class="form-input" id="t-member" placeholder="Ex: Vito Scaletta">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Valor ($) *</label>
+            <input type="number" class="form-input" id="t-amount" min="1" required placeholder="Ex: 5000">
+          </div>
+          
+          <div class="modal-footer" style="padding-right: 0; padding-bottom: 0;">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-transaction">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Lançamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- 5. ADD VEHICLE MODAL (GLOBAL FLEET) -->
+  <div class="modal-overlay" id="modal-new-vehicle">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-car-side"></i> Registrar Veículo na Frota</h3>
+        <button class="modal-close" data-close-modal="modal-new-vehicle"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-vehicle">
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Modelo do Veículo *</label>
+            <input type="text" class="form-input" id="v-model" required placeholder="Ex: Lassiter Series 75">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Placa de Licença *</label>
+            <input type="text" class="form-input" id="v-plate" required placeholder="Ex: MAFIA-03">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Cor do Carro *</label>
+            <input type="text" class="form-input" id="v-color" required placeholder="Ex: Vermelho Escuro">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Proprietário</label>
+            <input type="text" class="form-input" id="v-owner" placeholder="Ex: Vito Scaletta">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Status Operacional</label>
+            <select class="form-select" id="v-status">
+              <option value="Operacional">Operacional</option>
+              <option value="Danificado">Danificado</option>
+              <option value="Apreendido">Apreendido</option>
+            </select>
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Observações Adicionais</label>
+            <textarea class="form-textarea" id="v-notes" placeholder="Ex: Vidros blindados instalados."></textarea>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 15px;"><i class="fas fa-image"></i> Foto do Veículo</h4>
+          <div class="photo-upload-container" id="v-photo-upload-box" style="padding: 15px 10px;">
+            <i class="fas fa-car photo-upload-icon" style="font-size: 1.5rem;"></i>
+            <span class="photo-upload-text">Upload da foto do carro</span>
+            <img src="" alt="Prévia" class="photo-upload-preview" id="v-photo-preview" style="width: 80px; height: 80px;">
+            <input type="file" class="photo-upload-file-input" id="v-photo-input" accept="image/*">
+          </div>
+          
+          <div class="modal-footer" style="padding-right: 0; padding-bottom: 0; margin-top: 15px;">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-vehicle">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar Carro</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- 6. ADD EQUIPMENT MODAL -->
+  <div class="modal-overlay" id="modal-new-equipment">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-shield-alt"></i> Cadastrar Item no Armaria</h3>
+        <button class="modal-close" data-close-modal="modal-new-equipment"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-equipment">
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Nome do Equipamento *</label>
+            <input type="text" class="form-input" id="e-name" required placeholder="Ex: Pistola Pesada M1911">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Categoria *</label>
+            <select class="form-select" id="e-category" required>
+              <option value="Armas">Armas (Fogo / Tático)</option>
+              <option value="Comunicação">Comunicação (Rádios / Rastreadores)</option>
+              <option value="Equipamento">Acessórios (Kits / Ferramentas / Munição)</option>
+              <option value="Defesa">Defesa (Coletes / Escudos)</option>
+            </select>
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Quantidade em Estoque *</label>
+            <input type="number" class="form-input" id="e-quantity" min="1" required placeholder="Ex: 10">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Atribuído a (Membro Custodiante)</label>
+            <input type="text" class="form-input" id="e-assigned" placeholder="Ex: Cofre Central do Armaria">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Condição do Item</label>
+            <select class="form-select" id="e-status">
+              <option value="Novo">Novo / Estado de Fábrica</option>
+              <option value="Bom">Bom / Semi-novo</option>
+              <option value="Manutenção Necessária">Precisa de Reparos</option>
+            </select>
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 15px;"><i class="fas fa-image"></i> Foto do Item</h4>
+          <div class="photo-upload-container" id="e-photo-upload-box" style="padding: 15px 10px;">
+            <i class="fas fa-shield-alt photo-upload-icon" style="font-size: 1.5rem;"></i>
+            <span class="photo-upload-text">Upload da foto do item</span>
+            <img src="" alt="Prévia" class="photo-upload-preview" id="e-photo-preview" style="width: 80px; height: 80px;">
+            <input type="file" class="photo-upload-file-input" id="e-photo-input" accept="image/*">
+          </div>
+          
+          <div class="modal-footer" style="padding-right: 0; padding-bottom: 0; margin-top: 15px;">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-equipment">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar Item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- 7. ADD MEETING MODAL -->
+  <div class="modal-overlay" id="modal-new-meeting">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-calendar-plus"></i> Agendar Reunião</h3>
+        <button class="modal-close" data-close-modal="modal-new-meeting"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-meeting">
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Tópico / Assunto Principal *</label>
+            <input type="text" class="form-input" id="mt-title" required placeholder="Ex: Distribuição de Divisas das Oficinas">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Data *</label>
+            <input type="date" class="form-input" id="mt-date" required>
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Horário *</label>
+            <input type="time" class="form-input" id="mt-time" required>
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Localização *</label>
+            <input type="text" class="form-input" id="mt-location" required placeholder="Ex: Escritório Sede Salieri">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Participantes Convocados</label>
+            <input type="text" class="form-input" id="mt-participants" placeholder="Ex: Vito, Joe, Salieri, Henry">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Pauta / Detalhes de Discussão</label>
+            <textarea class="form-textarea" id="mt-notes" placeholder="Descreva os assuntos que serão abordados..."></textarea>
+          </div>
+          
+          <div class="modal-footer" style="padding-right: 0; padding-bottom: 0;">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-meeting">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Agendar Reunião</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- 8. SECURE PROPERTY MODAL -->
+  <div class="modal-overlay" id="modal-new-property">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-building"></i> Registrar Novo Imóvel</h3>
+        <button class="modal-close" data-close-modal="modal-new-property"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-property">
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Nome da Propriedade *</label>
+            <input type="text" class="form-input" id="p-name" required placeholder="Ex: Casa Segura Greenfield">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Endereço Físico *</label>
+            <input type="text" class="form-input" id="p-address" required placeholder="Ex: Greenfield Lane 205, Empire Bay">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Tipo de Propriedade *</label>
+            <select class="form-select" id="p-type" required>
+              <option value="Casa Segura">Casa Segura (Safehouse)</option>
+              <option value="Galpão">Galpão (Warehouse)</option>
+              <option value="Sede do Clube">Sede do Clube (Clubhouse)</option>
+              <option value="Fachada Comercial">Negócio de Fachada</option>
+            </select>
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Grau de Segurança</label>
+            <select class="form-select" id="p-security">
+              <option value="Padrão">Padrão / Discreto</option>
+              <option value="Portas Reforçadas">Portas Blindadas e Fechaduras</option>
+              <option value="Máxima Proteção">Fortificado / Cofre Tático</option>
+            </select>
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Guardas Atribuídos</label>
+            <input type="text" class="form-input" id="p-guards" placeholder="Ex: 2 Soldados">
+          </div>
+          
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Conteúdo do Estoque Interno</label>
+            <input type="text" class="form-input" id="p-storage" placeholder="Ex: Caixa de armas, 3 carros de fuga">
+          </div>
+          
+          <h4 class="info-box-title" style="margin-bottom: 12px; margin-top: 15px;"><i class="fas fa-image"></i> Foto da Fachada</h4>
+          <div class="photo-upload-container" id="p-photo-upload-box" style="padding: 15px 10px;">
+            <i class="fas fa-building photo-upload-icon" style="font-size: 1.5rem;"></i>
+            <span class="photo-upload-text">Upload da foto do imóvel</span>
+            <img src="" alt="Prévia" class="photo-upload-preview" id="p-photo-preview" style="width: 80px; height: 80px;">
+            <input type="file" class="photo-upload-file-input" id="p-photo-input" accept="image/*">
+          </div>
+          
+          <div class="modal-footer" style="padding-right: 0; padding-bottom: 0; margin-top: 15px;">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-property">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar Imóvel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- TOAST FEEDBACK AREA -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Custom Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
