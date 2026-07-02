@@ -2377,3 +2377,71 @@ input:checked + .slider:before {
 .close-float-calc:hover {
   color: var(--accent-color-hover);
 }
+
+/* Tactical Map Pins */
+.map-blip {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  margin-left: -16px;
+  margin-top: -16px;
+  background: rgba(14, 14, 18, 0.85);
+  border: 2px solid var(--accent-color);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(183, 28, 28, 0.6);
+  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.map-blip:hover {
+  transform: scale(1.2);
+  border-color: var(--accent-color-hover);
+  background: var(--accent-color);
+  box-shadow: 0 0 15px rgba(183, 28, 28, 0.9), var(--shadow-accent-strong);
+  z-index: 20;
+}
+
+.map-blip.pulse {
+  animation: blipPulse 1.5s infinite;
+}
+
+@keyframes blipPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(183, 28, 28, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(183, 28, 28, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(183, 28, 28, 0);
+  }
+}
+
+.map-blip-tooltip {
+  position: absolute;
+  bottom: 38px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14, 14, 18, 0.95);
+  border: 1px solid var(--border-color-hover);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.map-blip:hover .map-blip-tooltip {
+  opacity: 1;
+}

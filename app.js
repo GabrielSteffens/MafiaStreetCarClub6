@@ -266,9 +266,9 @@ const defaultState = {
     { name: "Rádio Transceptor de Longo Alcance", category: "Comunicação", quantity: 15, assigned: "Marty", status: "Bom", photo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=300" }
   ],
   properties: [
-    { name: "Esconderijo Greenfield", address: "Greenfield Lane, 205, Empire Bay", type: "Casa Segura", security: "Portas Reforçadas", guards: "Nenhum", storage: "Arsenal oculto e 3 vagas de fuga", photo: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=400" },
-    { name: "Galpão Portuário Hoboken 4", address: "Área Industrial das Docas, Empire Bay", type: "Galpão", security: "Padrão", guards: "3 Soldados", storage: "Estoque de bebidas e peças importadas", photo: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400" },
-    { name: "Sede Central Little Italy", address: "Avenida Little Italy, 12, Empire Bay", type: "Sede do Clube", security: "Máxima Proteção", guards: "5 Soldados", storage: "Cofre de depósitos e documentos fiscais", photo: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&q=80&w=400" }
+    { name: "Esconderijo Greenfield", address: "Greenfield Lane, 205, Empire Bay", type: "Casa Segura", security: "Portas Reforçadas", guards: "Nenhum", storage: "Arsenal oculto e 3 vagas de fuga", photo: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=400", coords: { x: 38.5, y: 35.2 } },
+    { name: "Galpão Portuário Hoboken 4", address: "Área Industrial das Docas, Empire Bay", type: "Galpão", security: "Padrão", guards: "3 Soldados", storage: "Estoque de bebidas e peças importadas", photo: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400", coords: { x: 62.1, y: 72.8 } },
+    { name: "Sede Central Little Italy", address: "Avenida Little Italy, 12, Empire Bay", type: "Sede do Clube", security: "Máxima Proteção", guards: "5 Soldados", storage: "Cofre de depósitos e documentos fiscais", photo: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&q=80&w=400", coords: { x: 50.5, y: 48.0 } }
   ],
   meetings: [
     { title: "Partilha de Divisas de Territórios", date: "2026-07-05", time: "20:00", location: "Sala de Reuniões da Sede", participants: "Vito, Joe, Salieri, Henry", attendance: "Scheduled", notes: "Análise dos relatórios de taxas das docas e postos de combustível." },
@@ -717,6 +717,10 @@ function closeModal(modalId) {
     if (form) form.reset();
     if (modalId === "modal-new-member") {
       editingMemberId = null;
+    }
+    if (modalId === "modal-new-property") {
+      const pin = document.getElementById("map-picker-pin");
+      if (pin) pin.style.display = "none";
     }
   }
 }
@@ -1882,37 +1886,108 @@ function renderProperties() {
   
   container.innerHTML = "";
   
-  state.properties.forEach(p => {
+  const pinsContainer = document.getElementById("tactical-map-pins");
+  if (pinsContainer) pinsContainer.innerHTML = "";
+  
+  state.properties.forEach((p, index) => {
     const card = document.createElement("div");
     card.className = "property-card";
+    card.id = `property-card-${index}`;
+    card.style.cursor = "pointer";
+    card.style.transition = "all 0.2s ease";
+    
+    card.addEventListener("click", () => {
+      focusMapPin(index);
+    });
+    
+    const coords = p.coords || { x: 50, y: 50 };
     
     card.innerHTML = `
-      <div class="property-photo-wrapper">
-        <img src="${p.photo || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=300'}" alt="${p.name}" class="property-photo">
-        <span class="property-info-badge">${p.type}</span>
+      <div class="property-photo-wrapper" style="position: relative;">
+        <img src="${p.photo || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=300'}" alt="${p.name}" class="property-photo" style="height: 110px; width: 100%; object-fit: cover; border-bottom: 1px solid var(--border-color);">
+        <span class="property-info-badge" style="position: absolute; top: 8px; left: 8px; background: var(--accent-gradient); border-radius: 4px; padding: 2px 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;">${p.type}</span>
       </div>
-      <div class="property-body">
-        <h4 class="property-name">${p.name}</h4>
-        <div class="property-address"><i class="fas fa-map-marker-alt"></i> ${p.address}</div>
+      <div class="property-body" style="padding: 12px;">
+        <h4 class="property-name" style="font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">${p.name}</h4>
+        <div class="property-address" style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;"><i class="fas fa-map-marker-alt" style="color: var(--accent-color-hover);"></i> ${p.address}</div>
         
-        <div class="property-details">
-          <div class="property-detail-row">
-            <span style="color: var(--text-muted);">Segurança do Local:</span>
+        <div class="property-details" style="font-size: 0.75rem; display: flex; flex-direction: column; gap: 4px;">
+          <div class="property-detail-row" style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Segurança:</span>
             <span style="color: var(--accent-color-hover); font-weight: 600;">${p.security}</span>
           </div>
-          <div class="property-detail-row">
-            <span style="color: var(--text-muted);">Guardas designados:</span>
-            <span style="color: var(--text-primary);">${p.guards || 'Nenhum'}</span>
+          <div class="property-detail-row" style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Guardas:</span>
+            <span style="color: var(--text-primary); font-weight: 500;">${p.guards || 'Nenhum'}</span>
           </div>
-          <div class="property-detail-row" style="margin-top: 6px; flex-direction: column; border-top: 1px solid var(--border-color); padding-top: 4px;">
-            <span style="color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase;">Itens Estocados no Local:</span>
+          <div class="property-detail-row" style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Coordenadas GPS:</span>
+            <span style="color: #4CAF50; font-weight: 600; font-family: monospace;">X: ${coords.x.toFixed(1)}, Y: ${coords.y.toFixed(1)}</span>
+          </div>
+          <div class="property-detail-row" style="margin-top: 6px; flex-direction: column; border-top: 1px solid var(--border-color); padding-top: 6px;">
+            <span style="color: var(--text-muted); font-size: 0.6rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Estoque do Imóvel:</span>
             <span style="color: var(--text-secondary); margin-top: 2px;">${p.storage || 'Nenhum'}</span>
           </div>
         </div>
       </div>
     `;
     container.appendChild(card);
+    
+    if (pinsContainer) {
+      let icon = "fa-building";
+      if (p.type === "Casa Segura") icon = "fa-home";
+      else if (p.type === "Galpão") icon = "fa-warehouse";
+      else if (p.type === "Sede do Clube") icon = "fa-shield-alt";
+      else if (p.type.includes("Fachada")) icon = "fa-dollar-sign";
+      
+      const blip = document.createElement("div");
+      blip.className = "map-blip";
+      blip.id = `map-blip-${index}`;
+      blip.style.left = `${coords.x}%`;
+      blip.style.top = `${coords.y}%`;
+      
+      blip.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <div class="map-blip-tooltip">
+          <div style="font-weight: 800; color: #fff;">${p.name}</div>
+          <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 2px;">${p.type} | Seg: ${p.security}</div>
+        </div>
+      `;
+      
+      blip.addEventListener("click", (e) => {
+        e.stopPropagation();
+        focusPropertyCard(index);
+      });
+      
+      pinsContainer.appendChild(blip);
+    }
   });
+}
+
+window.focusPropertyCard = function(index) {
+  document.querySelectorAll(".property-card").forEach(c => {
+    c.style.borderColor = "var(--border-color)";
+    c.style.background = "";
+  });
+  document.querySelectorAll(".map-blip").forEach(b => {
+    b.classList.remove("pulse");
+  });
+  
+  const card = document.getElementById(`property-card-${index}`);
+  if (card) {
+    card.style.borderColor = "var(--accent-color-hover)";
+    card.style.background = "rgba(183, 28, 28, 0.03)";
+    card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  
+  const blip = document.getElementById(`map-blip-${index}`);
+  if (blip) {
+    blip.classList.add("pulse");
+  }
+}
+
+window.focusMapPin = function(index) {
+  focusPropertyCard(index);
 }
 
 // 9. RENDERS DE REUNIÕES
@@ -2540,6 +2615,14 @@ function initFormSubmissions() {
       const guards = document.getElementById("p-guards").value;
       const storage = document.getElementById("p-storage").value;
       
+      const xVal = parseFloat(document.getElementById("p-coords-x").value);
+      const yVal = parseFloat(document.getElementById("p-coords-y").value);
+      
+      if (isNaN(xVal) || isNaN(yVal)) {
+        showToast("Por favor, marque a localização do GPS no mapa antes de salvar.", "error");
+        return;
+      }
+      
       const newProp = {
         name,
         address,
@@ -2547,7 +2630,8 @@ function initFormSubmissions() {
         security,
         guards,
         storage,
-        photo: tempUploadedImage["new-property"] || "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400"
+        photo: tempUploadedImage["new-property"] || "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400",
+        coords: { x: xVal, y: yVal }
       };
       
       state.properties.push(newProp);
@@ -2559,6 +2643,24 @@ function initFormSubmissions() {
       showToast("Imóvel registrado com sucesso", "success");
     });
   }
+}
+
+window.pickPropertyCoords = function(event) {
+  const wrapper = event.currentTarget;
+  const rect = wrapper.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width) * 100;
+  const y = ((event.clientY - rect.top) / rect.height) * 100;
+  
+  document.getElementById("p-coords-x").value = x.toFixed(2);
+  document.getElementById("p-coords-y").value = y.toFixed(2);
+  
+  const pin = document.getElementById("map-picker-pin");
+  if (pin) {
+    pin.style.left = x.toFixed(2) + "%";
+    pin.style.top = y.toFixed(2) + "%";
+    pin.style.display = "block";
+  }
+}
 }
 
 // ==================== CONFIGURAÇÕES E SALVAMENTO ====================
