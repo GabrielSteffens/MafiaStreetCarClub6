@@ -347,17 +347,17 @@ async function loadState() {
       supabaseClient.from("transactions").select("*")
     ]);
 
-    if (resSettings.error) console.error("Supabase settings error:", resSettings.error);
-    if (resMembers.error) console.error("Supabase members error:", resMembers.error);
-    if (resVehicles.error) console.error("Supabase vehicles error:", resVehicles.error);
-    if (resEquipment.error) console.error("Supabase equipment error:", resEquipment.error);
-    if (resProperties.error) console.error("Supabase properties error:", resProperties.error);
-    if (resActions.error) console.error("Supabase actions error:", resActions.error);
-    if (resOperations.error) console.error("Supabase operations error:", resOperations.error);
-    if (resRecruitment.error) console.error("Supabase recruitment error:", resRecruitment.error);
-    if (resMeetings.error) console.error("Supabase meetings error:", resMeetings.error);
-    if (resActivities.error) console.error("Supabase activities error:", resActivities.error);
-    if (resTransactions.error) console.error("Supabase transactions error:", resTransactions.error);
+    if (resSettings.error) console.error("Supabase settings error:", JSON.stringify(resSettings.error));
+    if (resMembers.error) console.error("Supabase members error:", JSON.stringify(resMembers.error));
+    if (resVehicles.error) console.error("Supabase vehicles error:", JSON.stringify(resVehicles.error));
+    if (resEquipment.error) console.error("Supabase equipment error:", JSON.stringify(resEquipment.error));
+    if (resProperties.error) console.error("Supabase properties error:", JSON.stringify(resProperties.error));
+    if (resActions.error) console.error("Supabase actions error:", JSON.stringify(resActions.error));
+    if (resOperations.error) console.error("Supabase operations error:", JSON.stringify(resOperations.error));
+    if (resRecruitment.error) console.error("Supabase recruitment error:", JSON.stringify(resRecruitment.error));
+    if (resMeetings.error) console.error("Supabase meetings error:", JSON.stringify(resMeetings.error));
+    if (resActivities.error) console.error("Supabase activities error:", JSON.stringify(resActivities.error));
+    if (resTransactions.error) console.error("Supabase transactions error:", JSON.stringify(resTransactions.error));
 
     const settings = resSettings.data;
     const members = resMembers.data;
@@ -371,27 +371,34 @@ async function loadState() {
     const activities = resActivities.data;
     const transactions = resTransactions.data;
 
-    // 2. Se as configurações existem no Supabase, o banco está populado -> usa os dados do banco
-    if (settings) {
+    // 2. Se as configurações existem no Supabase, não houve erro nas configurações, e o banco tem dados cadastrados
+    const dbHasData = (!resMembers.error && members && members.length > 0) || 
+                      (!resVehicles.error && vehicles && vehicles.length > 0) || 
+                      (!resActions.error && actions && actions.length > 0);
+
+    if (settings && !resSettings.error && dbHasData) {
       state.settings = {
         clubName: settings.club_name,
         adminName: settings.admin_name,
         adminAvatar: settings.admin_avatar
       };
-      state.members = members || [];
-      state.vehicles = vehicles || [];
-      state.equipment = equipment || [];
-      state.properties = properties || [];
-      state.actions = actions || [];
-      state.operations = operations || [];
-      state.recruitment = recruitment || [];
-      state.meetings = meetings || [];
-      state.activities = activities || [];
-      state.transactions = transactions && transactions.length > 0 
+      
+      // Usa dados do banco apenas se a consulta não retornou erro. Caso contrário, mantém o local ou padrão
+      state.members = (!resMembers.error && members) ? members : (localState?.members || defaultState.members);
+      state.vehicles = (!resVehicles.error && vehicles) ? vehicles : (localState?.vehicles || defaultState.vehicles);
+      state.equipment = (!resEquipment.error && equipment) ? equipment : (localState?.equipment || defaultState.equipment);
+      state.properties = (!resProperties.error && properties) ? properties : (localState?.properties || defaultState.properties);
+      state.actions = (!resActions.error && actions) ? actions : (localState?.actions || defaultState.actions);
+      state.operations = (!resOperations.error && operations) ? operations : (localState?.operations || defaultState.operations);
+      state.recruitment = (!resRecruitment.error && recruitment) ? recruitment : (localState?.recruitment || defaultState.recruitment);
+      state.meetings = (!resMeetings.error && meetings) ? meetings : (localState?.meetings || defaultState.meetings);
+      state.activities = (!resActivities.error && activities) ? activities : (localState?.activities || defaultState.activities);
+      
+      state.transactions = (!resTransactions.error && transactions) 
         ? transactions.map(t => ({ date: t.date, type: t.type, desc: t.desc_text, member: t.member, amount: Number(t.amount) }))
-        : [];
+        : (localState?.transactions || defaultState.transactions);
     } else {
-      // 3. Se o banco está vazio:
+      // 3. Se o banco está vazio ou houve erro nas permissões de leitura do settings:
       // Se o usuário já tinha dados salvos localmente, usamos eles (migração para a nuvem!)
       // Caso contrário, usamos os dados iniciais de fábrica (defaultState)
       if (localState && localState.settings && localState.settings.clubName) {
@@ -399,8 +406,11 @@ async function loadState() {
       } else {
         state = JSON.parse(JSON.stringify(defaultState));
       }
-      // Salva no Supabase para inicializar o banco de dados com esses dados
-      await saveState();
+      
+      // Apenas inicializa o banco se as permissões de gravação estiverem ativas e as tabelas criadas
+      if (!resSettings.error) {
+        await saveState();
+      }
     }
   } catch (err) {
     console.error("Erro ao ler dados do Supabase, revertendo para localStorage/fábrica...", err);
