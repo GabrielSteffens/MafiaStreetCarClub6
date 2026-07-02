@@ -883,7 +883,7 @@ function updateTopbarTotals() {
   const totalBalance = state.transactions.reduce((acc, t) => {
     if (t.type === "Income" || t.type === "Donation") return acc + t.amount;
     return acc - t.amount;
-  }, 324500);
+  }, 0);
 
   const formattedBalance = "$" + totalBalance.toLocaleString();
   const topbarTreasury = document.getElementById("topbar-treasury-val");
