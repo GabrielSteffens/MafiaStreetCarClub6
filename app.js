@@ -376,6 +376,25 @@ document.addEventListener("DOMContentLoaded", () => {
   // Inicializar interações avançadas de arrastar/zoom nos mapas
   initMapsDraggableAndWheelZoom();
 
+  // Inicializar clique vs arrasto do seletor de mapa no cadastro
+  const pickerImg = document.getElementById("map-picker-img");
+  if (pickerImg) {
+    let downX = 0;
+    let downY = 0;
+    pickerImg.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      downX = e.clientX;
+      downY = e.clientY;
+    });
+    pickerImg.addEventListener("mouseup", (e) => {
+      if (e.button !== 0) return;
+      // Registrar coordenadas apenas se o mouse não se deslocou mais de 5px (indicativo de clique rápido)
+      if (Math.abs(e.clientX - downX) < 5 && Math.abs(e.clientY - downY) < 5) {
+        pickPropertyCoords(e);
+      }
+    });
+  }
+
   // Iniciar na aba Painel (Dashboard)
   renderModule("dashboard");
 });
@@ -2958,7 +2977,7 @@ window.zoomTacticalMap = function(amountOrScale) {
   if (!container) return;
   
   if (amountOrScale === 1) {
-    tacticalZoom = Math.min(6.0, tacticalZoom + 0.25);
+    tacticalZoom = Math.min(10.0, tacticalZoom + 0.25);
   } else if (amountOrScale === -1) {
     tacticalZoom = Math.max(1.0, tacticalZoom - 0.25);
   } else {
@@ -2976,7 +2995,7 @@ window.zoomMapPicker = function(amountOrScale) {
   if (!container) return;
   
   if (amountOrScale === 1) {
-    pickerZoom = Math.min(6.0, pickerZoom + 0.25);
+    pickerZoom = Math.min(10.0, pickerZoom + 0.25);
   } else if (amountOrScale === -1) {
     pickerZoom = Math.max(1.0, pickerZoom - 0.25);
   } else {
