@@ -327,6 +327,19 @@ function logActivity(text, type = "Sistema") {
 
 // ==================== INICIALIZAÇÕES DO DOM ====================
 document.addEventListener("DOMContentLoaded", () => {
+  // ── Pré-carregamento do mapa satélite ──────────────────────────────────
+  // Força o browser a baixar e cachear a imagem imediatamente,
+  // antes do usuário abrir qualquer modal ou módulo do mapa.
+  const _mapPreloadImg = new Image();
+  _mapPreloadImg.src = "GTAV_SATELLITE_2048x2048.png";
+  _mapPreloadImg.onload = () => {
+    // Ao terminar de carregar, aplica o transform inicial nos containers
+    // para ativar o contexto de compositing GPU antes do primeiro uso.
+    applyMapScale("tactical-map-scrollable", 1.0);
+    applyMapScale("map-picker-scrollable",  1.0);
+  };
+  // ───────────────────────────────────────────────────────────────────────
+
   loadState();
   initClock();
   initSidebarNavigation();
