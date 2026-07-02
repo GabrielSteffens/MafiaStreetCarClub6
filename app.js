@@ -635,7 +635,6 @@ function clearPhotoUpload(formKey) {
 // ==================== MODALS TABS & ROWS ====================
 function initModals() {
   const triggers = [
-    { btnId: "btn-open-new-member", modalId: "modal-new-member" },
     { btnId: "btn-open-new-recruit", modalId: "modal-new-recruit" },
     { btnId: "btn-open-new-operation", modalId: "modal-new-operation" },
     { btnId: "btn-open-new-transaction", modalId: "modal-new-transaction" },
@@ -651,6 +650,16 @@ function initModals() {
       btn.addEventListener("click", () => openModal(modalId));
     }
   });
+
+  const btnNewMember = document.getElementById("btn-open-new-member");
+  if (btnNewMember) {
+    btnNewMember.addEventListener("click", () => {
+      editingMemberId = null;
+      const modalTitle = document.querySelector('#modal-new-member .modal-title');
+      if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-users-cog"></i> + Registrar Novo Membro no Sindicato';
+      openModal('modal-new-member');
+    });
+  }
   
   document.querySelectorAll("[data-close-modal]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -685,7 +694,7 @@ function openModal(modalId) {
     const formKey = modalId.replace("modal-", "");
     clearPhotoUpload(formKey);
     
-    if (modalId === "modal-new-member") {
+    if (modalId === "modal-new-member" && !editingMemberId) {
       const container = document.getElementById("m-form-vehicles-container");
       if (container) {
         container.innerHTML = ""; 
@@ -701,6 +710,9 @@ function closeModal(modalId) {
     modal.classList.remove("active");
     const form = modal.querySelector("form");
     if (form) form.reset();
+    if (modalId === "modal-new-member") {
+      editingMemberId = null;
+    }
   }
 }
 
@@ -819,6 +831,7 @@ function renderDashboard() {
 
 // 2. RENDERS DOS MEMBROS
 let activeMemberId = "MEM-001";
+let editingMemberId = null;
 
 function renderMembersList() {
   const container = document.getElementById("members-list-container");
@@ -892,7 +905,10 @@ function renderMemberDetail() {
       </div>
       
       <div class="profile-hero-info">
-        <div class="profile-hero-rank">${rankTranslations[m.rank]}</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <div class="profile-hero-rank">${rankTranslations[m.rank]}</div>
+          <button class="btn btn-primary btn-sm" onclick="editMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: linear-gradient(135deg, #b71c1c 0%, #5f0909 100%);"><i class="fas fa-edit"></i> Editar Dossiê</button>
+        </div>
         <div class="profile-hero-name">${m.fullName}</div>
         <div class="profile-hero-nickname">"${m.nickname || 'Sem apelido'}"</div>
         
@@ -1088,6 +1104,101 @@ function renderMemberDetail() {
         `;
         warnList.appendChild(item);
       });
+    }
+  }
+}
+
+window.editMemberDossier = function(memberId) {
+  const m = state.members.find(member => member.id === memberId);
+  if (!m) return;
+  
+  editingMemberId = memberId;
+  
+  // Alterar título do modal
+  const modalTitle = document.querySelector('#modal-new-member .modal-title');
+  if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-users-cog"></i> Editar Dossiê de Membro';
+  
+  // Abrir o modal
+  openModal('modal-new-member');
+  
+  // Preencher dados cadastrais básicos
+  document.getElementById("m-full-name").value = m.fullName || "";
+  document.getElementById("m-nickname").value = m.nickname || "";
+  document.getElementById("m-phone").value = m.phone || "";
+  document.getElementById("m-discord").value = m.discord || "";
+  document.getElementById("m-email").value = m.email || "";
+  document.getElementById("m-dob").value = m.dob || "";
+  document.getElementById("m-address").value = m.address || "";
+  document.getElementById("m-rank").value = m.rank || "Associate";
+  document.getElementById("m-recruiter").value = m.recruiter || "";
+  document.getElementById("m-join-date").value = m.joinDate || "";
+  document.getElementById("m-trust").value = m.trust || 50;
+  
+  // Status toggle
+  const toggle = document.getElementById("m-status-toggle");
+  if (toggle) {
+    toggle.checked = (m.status === "Active");
+    toggle.dispatchEvent(new Event("change"));
+  }
+  
+  // Observações e Equipamentos
+  document.getElementById("m-notes").value = m.notes || "";
+  document.getElementById("m-equipment").value = m.equipment || "";
+  
+  // Foto de perfil
+  const preview = document.getElementById("m-photo-preview");
+  const box = document.getElementById("m-photo-upload-box");
+  if (preview && box) {
+    if (m.photo) {
+      preview.src = m.photo;
+      preview.style.display = "block";
+      const icon = box.querySelector(".photo-upload-icon");
+      const text = box.querySelector(".photo-upload-text");
+      if (icon) icon.style.display = "none";
+      if (text) text.style.display = "none";
+      tempUploadedImage["new-member"] = m.photo;
+    } else {
+      preview.src = "";
+      preview.style.display = "none";
+      const icon = box.querySelector(".photo-upload-icon");
+      const text = box.querySelector(".photo-upload-text");
+      if (icon) icon.style.display = "block";
+      if (text) text.style.display = "block";
+      tempUploadedImage["new-member"] = null;
+    }
+  }
+  
+  // Veículos
+  const container = document.getElementById("m-form-vehicles-container");
+  if (container) {
+    container.innerHTML = "";
+    if (m.vehicles && m.vehicles.length > 0) {
+      m.vehicles.forEach(v => {
+        const row = document.createElement("div");
+        row.className = "form-vehicle-row";
+        row.innerHTML = `
+          <div class="form-control-wrapper">
+            <label class="form-label" style="font-size: 0.65rem;">Modelo</label>
+            <input type="text" class="form-input form-veh-model" style="padding: 6px 10px; font-size: 0.8rem;" value="${v.model}" required>
+          </div>
+          <div class="form-control-wrapper">
+            <label class="form-label" style="font-size: 0.65rem;">Placa</label>
+            <input type="text" class="form-input form-veh-plate" style="padding: 6px 10px; font-size: 0.8rem;" value="${v.plate}" required>
+          </div>
+          <div class="form-control-wrapper">
+            <label class="form-label" style="font-size: 0.65rem;">Cor</label>
+            <input type="text" class="form-input form-veh-color" style="padding: 6px 10px; font-size: 0.8rem;" value="${v.color}" required>
+          </div>
+          <div class="form-control-wrapper">
+            <label class="form-label" style="font-size: 0.65rem;">Foto URL</label>
+            <input type="text" class="form-input form-veh-photo" style="padding: 6px 10px; font-size: 0.8rem;" value="${v.photo || ''}">
+          </div>
+          <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding: 8px 10px; height: 33px;"><i class="fas fa-trash"></i></button>
+        `;
+        container.appendChild(row);
+      });
+    } else {
+      addFormVehicleRow();
     }
   }
 }
@@ -1871,20 +1982,80 @@ function initFormSubmissions() {
         const vPhoto = row.querySelector(".form-veh-photo").value || "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=200";
         if (vModel && vPlate) {
           vehicles.push({ model: vModel, plate: vPlate, color: vColor, photo: vPhoto });
-          
-          state.vehicles.push({
-            model: vModel,
-            plate: vPlate,
-            color: vColor,
-            owner: name,
-            status: "Operacional",
-            photo: vPhoto,
-            notes: "Veículo cadastrado na criação do dossiê do membro."
-          });
         }
       });
       
+      if (editingMemberId) {
+        // Modo Edição
+        const memberIndex = state.members.findIndex(m => m.id === editingMemberId);
+        if (memberIndex !== -1) {
+          const m = state.members[memberIndex];
+          const oldName = m.fullName;
+          
+          m.fullName = name;
+          m.nickname = nick;
+          m.phone = phone;
+          m.discord = disc;
+          m.email = email;
+          m.dob = dob;
+          m.address = address;
+          m.rank = rank;
+          m.recruiter = recruiter;
+          m.joinDate = joinDate;
+          m.trust = trust;
+          m.status = isActive ? "Active" : "Inactive";
+          if (tempUploadedImage["new-member"]) {
+            m.photo = tempUploadedImage["new-member"];
+          }
+          m.notes = notes;
+          m.equipment = equipmentStr;
+          m.vehicles = vehicles;
+          m.lastActivity = new Date().toISOString().slice(0, 16).replace("T", " ");
+          
+          m.history.unshift({
+            time: new Date().toISOString().slice(0, 16).replace("T", " "),
+            desc: "Dossiê atualizado pelo administrador."
+          });
+          
+          // Sincronizar a frota de veículos
+          state.vehicles = state.vehicles.filter(v => v.owner !== name && v.owner !== oldName);
+          vehicles.forEach(v => {
+            state.vehicles.push({
+              model: v.model,
+              plate: v.plate,
+              color: v.color,
+              owner: name,
+              status: "Operacional",
+              photo: v.photo,
+              notes: "Veículo atualizado no dossiê de " + name
+            });
+          });
+          
+          logActivity(`Dossiê do membro ${name} (${editingMemberId}) atualizado`, "Membro");
+          saveState();
+          closeModal("modal-new-member");
+          editingMemberId = null;
+          renderMembersList();
+          showToast(`Dossiê ${name} atualizado com sucesso!`, "success");
+          return;
+        }
+      }
+      
+      // Modo Criação
       const newId = "MEM-0" + (state.members.length + 1);
+      
+      // Sincronizar veículos novos na frota
+      vehicles.forEach(v => {
+        state.vehicles.push({
+          model: v.model,
+          plate: v.plate,
+          color: v.color,
+          owner: name,
+          status: "Operacional",
+          photo: v.photo,
+          notes: "Veículo cadastrado na criação do dossiê do membro."
+        });
+      });
       
       const newMember = {
         id: newId,
@@ -1902,6 +2073,7 @@ function initFormSubmissions() {
         status: isActive ? "Active" : "Inactive",
         photo: tempUploadedImage["new-member"] || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=300",
         notes,
+        equipment: equipmentStr,
         lastActivity: new Date().toISOString().slice(0, 16).replace("T", " "),
         documents: [],
         vehicles,
