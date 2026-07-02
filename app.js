@@ -319,9 +319,9 @@ function logActivity(text, type = "Sistema") {
   const now = new Date();
   const timeStr = now.toISOString().slice(0, 10) + " " + now.toTimeString().slice(0, 5);
   state.activities.unshift({ time: timeStr, type, text });
-  
+
   if (state.activities.length > 50) state.activities.pop();
-  
+
   saveState();
 }
 
@@ -336,7 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ao terminar de carregar, aplica o transform inicial nos containers
     // para ativar o contexto de compositing GPU antes do primeiro uso.
     applyMapScale("tactical-map-scrollable", 1.0);
-    applyMapScale("map-picker-scrollable",  1.0);
+    applyMapScale("map-picker-scrollable", 1.0);
   };
   // ───────────────────────────────────────────────────────────────────────
 
@@ -345,10 +345,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initSidebarNavigation();
   initModals();
   initPhotoUploads();
-  
+
   // Listeners de envio de formulários
   initFormSubmissions();
-  
+
   // Listeners para filtros e buscas de membros
   const memberSearch = document.getElementById("member-search");
   const memberRank = document.getElementById("member-filter-rank");
@@ -360,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Botão de salvar configurações
   const btnSaveSettings = document.getElementById("btn-save-settings");
   if (btnSaveSettings) btnSaveSettings.addEventListener("click", saveSettings);
-  
+
   // Botão de reset de fábrica
   const btnResetData = document.getElementById("btn-reset-data");
   if (btnResetData) btnResetData.addEventListener("click", resetDatabase);
@@ -439,7 +439,7 @@ function initSidebarNavigation() {
     item.addEventListener("click", () => {
       menuItems.forEach(i => i.classList.remove("active"));
       item.classList.add("active");
-      
+
       const moduleName = item.getAttribute("data-module");
       renderModule(moduleName);
     });
@@ -451,13 +451,13 @@ function renderModule(moduleName) {
   document.querySelectorAll(".module-panel").forEach(panel => {
     panel.classList.remove("active");
   });
-  
+
   // Mostrar ativo
   const targetPanel = document.getElementById(`module-${moduleName}`);
   if (targetPanel) {
     targetPanel.classList.add("active");
   }
-  
+
   // Alterar título no cabeçalho
   const headerTitle = document.getElementById("module-title");
   if (headerTitle) {
@@ -479,12 +479,12 @@ function renderModule(moduleName) {
     };
     headerTitle.innerText = nameMap[moduleName] || moduleName;
   }
-  
+
   // Atualizar contadores
   updateTopbarTotals();
 
   // Renderizadores dinâmicos
-  switch(moduleName) {
+  switch (moduleName) {
     case "dashboard":
       renderDashboard();
       break;
@@ -532,24 +532,24 @@ function updateTopbarTotals() {
   const totalBalance = state.transactions.reduce((acc, t) => {
     if (t.type === "Income" || t.type === "Donation") return acc + t.amount;
     return acc - t.amount;
-  }, 324500); 
-  
+  }, 324500);
+
   const formattedBalance = "$" + totalBalance.toLocaleString();
   const topbarTreasury = document.getElementById("topbar-treasury-val");
   const dashTreasury = document.getElementById("dash-treasury-balance");
   const treasuryBalanceVal = document.getElementById("treasury-balance-val");
-  
+
   if (topbarTreasury) topbarTreasury.innerText = formattedBalance;
   if (dashTreasury) dashTreasury.innerText = formattedBalance;
   if (treasuryBalanceVal) treasuryBalanceVal.innerText = formattedBalance;
-  
+
   // Operações ativas
   const activeOps = state.operations.filter(o => o.status === "Active").length;
   const topbarOps = document.getElementById("topbar-ops-val");
   const dashOps = document.getElementById("dash-active-operations");
   if (topbarOps) topbarOps.innerText = activeOps;
   if (dashOps) dashOps.innerText = activeOps;
-  
+
   // Total de Membros / Ativos (excluindo arquivados do total operacional)
   const totalMem = state.members.filter(m => m.status !== "Archived").length;
   const activeMem = state.members.filter(m => m.status === "Active").length;
@@ -557,7 +557,7 @@ function updateTopbarTotals() {
   const dashActiveMem = document.getElementById("dash-active-members");
   if (dashTotalMem) dashTotalMem.innerText = totalMem;
   if (dashActiveMem) dashActiveMem.innerText = activeMem;
-  
+
   // Recrutas pendentes
   const pendingRec = state.recruitment.filter(r => r.status === "Pending").length;
   const dashRec = document.getElementById("dash-pending-recruit");
@@ -572,20 +572,20 @@ function updateTopbarTotals() {
 function showToast(message, type = "success") {
   const container = document.getElementById("toast-container");
   if (!container) return;
-  
+
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
-  
+
   let icon = "fa-check-circle";
   if (type === "error") icon = "fa-exclamation-triangle";
-  
+
   toast.innerHTML = `
     <i class="fas ${icon}"></i>
     <div class="toast-message">${message}</div>
   `;
-  
+
   container.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.style.animation = "slideInRight 0.3s reverse forwards";
     setTimeout(() => {
@@ -595,7 +595,7 @@ function showToast(message, type = "success") {
 }
 
 // ==================== CONTROLE DE FOTOS ENVIADAS ====================
-let tempUploadedImage = {}; 
+let tempUploadedImage = {};
 
 function initPhotoUploads() {
   const uploadBoxes = [
@@ -611,11 +611,11 @@ function initPhotoUploads() {
     const box = document.getElementById(boxId);
     const input = document.getElementById(inputId);
     const preview = document.getElementById(previewId);
-    
+
     if (!box || !input || !preview) return;
-    
+
     box.addEventListener("click", () => input.click());
-    
+
     box.addEventListener("dragover", (e) => {
       e.preventDefault();
       box.classList.add("dragover");
@@ -630,7 +630,7 @@ function initPhotoUploads() {
         processImageFile(e.dataTransfer.files[0], preview, formKey, box);
       }
     });
-    
+
     input.addEventListener("change", (e) => {
       if (input.files.length) {
         processImageFile(input.files[0], preview, formKey, box);
@@ -644,17 +644,17 @@ function processImageFile(file, previewImg, formKey, box) {
     showToast("Arquivo inválido. Escolha uma imagem.", "error");
     return;
   }
-  
+
   const reader = new FileReader();
   reader.onload = (e) => {
     previewImg.src = e.target.result;
     previewImg.style.display = "block";
-    
+
     const icon = box.querySelector(".photo-upload-icon");
     const text = box.querySelector(".photo-upload-text");
     if (icon) icon.style.display = "none";
     if (text) text.style.display = "none";
-    
+
     tempUploadedImage[formKey] = e.target.result;
     showToast("Imagem carregada e pronta para dossiê.", "success");
   };
@@ -663,19 +663,19 @@ function processImageFile(file, previewImg, formKey, box) {
 
 function clearPhotoUpload(formKey) {
   tempUploadedImage[formKey] = null;
-  const boxId = formKey === "new-member" ? "m-photo-upload-box" : 
-                formKey === "new-recruit" ? "r-photo-upload-box" :
-                formKey === "new-operation" ? "o-photo-upload-box" :
-                formKey === "new-vehicle" ? "v-photo-upload-box" :
-                formKey === "new-equipment" ? "e-photo-upload-box" : "p-photo-upload-box";
-                
+  const boxId = formKey === "new-member" ? "m-photo-upload-box" :
+    formKey === "new-recruit" ? "r-photo-upload-box" :
+      formKey === "new-operation" ? "o-photo-upload-box" :
+        formKey === "new-vehicle" ? "v-photo-upload-box" :
+          formKey === "new-equipment" ? "e-photo-upload-box" : "p-photo-upload-box";
+
   const box = document.getElementById(boxId);
   if (!box) return;
   const preview = box.querySelector(".photo-upload-preview");
   const icon = box.querySelector(".photo-upload-icon");
   const text = box.querySelector(".photo-upload-text");
   const input = box.querySelector(".photo-upload-file-input");
-  
+
   if (preview) {
     preview.src = "";
     preview.style.display = "none";
@@ -689,14 +689,13 @@ function clearPhotoUpload(formKey) {
 function initModals() {
   const triggers = [
     { btnId: "btn-open-new-recruit", modalId: "modal-new-recruit" },
-    { btnId: "btn-open-new-operation", modalId: "modal-new-operation" },
     { btnId: "btn-open-new-transaction", modalId: "modal-new-transaction" },
     { btnId: "btn-open-new-vehicle", modalId: "modal-new-vehicle" },
     { btnId: "btn-open-new-equipment", modalId: "modal-new-equipment" },
     { btnId: "btn-open-new-meeting", modalId: "modal-new-meeting" },
     { btnId: "btn-open-new-property", modalId: "modal-new-property" }
   ];
-  
+
   triggers.forEach(({ btnId, modalId }) => {
     const btn = document.getElementById(btnId);
     if (btn) {
@@ -724,13 +723,13 @@ function initModals() {
       openModal('modal-new-member');
     });
   }
-  
+
   document.querySelectorAll("[data-close-modal]").forEach(btn => {
     btn.addEventListener("click", () => {
       closeModal(btn.getAttribute("data-close-modal"));
     });
   });
-  
+
   const statusToggle = document.getElementById("m-status-toggle");
   const statusText = document.getElementById("m-status-text");
   if (statusToggle && statusText) {
@@ -744,7 +743,7 @@ function initModals() {
       }
     });
   }
-  
+
   const btnAddVehRow = document.getElementById("btn-m-add-vehicle-row");
   if (btnAddVehRow) {
     btnAddVehRow.addEventListener("click", addFormVehicleRow);
@@ -757,12 +756,12 @@ function openModal(modalId) {
     modal.classList.add("active");
     const formKey = modalId.replace("modal-", "");
     clearPhotoUpload(formKey);
-    
+
     if (modalId === "modal-new-member" && !editingMemberId) {
       const container = document.getElementById("m-form-vehicles-container");
       if (container) {
-        container.innerHTML = ""; 
-        addFormVehicleRow(); 
+        container.innerHTML = "";
+        addFormVehicleRow();
       }
     }
   }
@@ -788,7 +787,7 @@ function closeModal(modalId) {
 function addFormVehicleRow() {
   const container = document.getElementById("m-form-vehicles-container");
   if (!container) return;
-  
+
   const row = document.createElement("div");
   row.className = "form-vehicle-row";
   row.innerHTML = `
@@ -844,10 +843,10 @@ function renderDashboard() {
   const ctx = document.getElementById("dashboard-main-chart");
   if (ctx) {
     if (dashboardChart) dashboardChart.destroy();
-    
+
     const incomeData = [24000, 32000, 18000, 42000, 39000, 58200];
     const expenseData = [15000, 22000, 12000, 26000, 21000, 23700];
-    
+
     dashboardChart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -905,25 +904,25 @@ let editingMemberId = null;
 function renderMembersList() {
   const container = document.getElementById("members-list-container");
   if (!container) return;
-  
+
   container.innerHTML = "";
-  
+
   const query = document.getElementById("member-search").value.toLowerCase();
   const filterRank = document.getElementById("member-filter-rank").value;
   const filterStatus = document.getElementById("member-filter-status").value;
-  
+
   const filtered = state.members.filter(m => {
     const matchName = m.fullName.toLowerCase().includes(query) || (m.nickname && m.nickname.toLowerCase().includes(query));
     const matchRank = filterRank === "" || m.rank === filterRank;
     const matchStatus = filterStatus === "" ? (m.status !== "Archived") : m.status === filterStatus;
     return matchName && matchRank && matchStatus;
   });
-  
+
   if (filtered.length === 0) {
     container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 20px;'>Nenhum membro corresponde aos filtros.</p>";
     return;
   }
-  
+
   filtered.forEach(m => {
     const item = document.createElement("div");
     item.className = `member-list-item ${m.id === activeMemberId ? 'active' : ''}`;
@@ -947,14 +946,14 @@ function renderMembersList() {
     });
     container.appendChild(item);
   });
-  
+
   renderMemberDetail();
 }
 
 function renderMemberDetail() {
   const container = document.getElementById("member-detail-container");
   if (!container) return;
-  
+
   const m = state.members.find(member => member.id === activeMemberId);
   if (!m) {
     container.innerHTML = `
@@ -965,9 +964,9 @@ function renderMemberDetail() {
     `;
     return;
   }
-  
+
   const memberActions = (state.actions || []).filter(act => act.participants && act.participants.includes(m.fullName));
-  
+
   container.innerHTML = `
     <div class="profile-hero-card">
       <div class="profile-hero-photo-wrapper">
@@ -1175,7 +1174,7 @@ function renderMemberDetail() {
 
     </div>
   `;
-  
+
   // Renderização de documentos
   const docsGrid = document.getElementById("member-docs-grid");
   if (docsGrid) {
@@ -1220,7 +1219,7 @@ function renderMemberDetail() {
       });
     }
   }
-  
+
   // Renderização de histórico pessoal
   const historyTimeline = document.getElementById("member-history-timeline");
   if (historyTimeline) {
@@ -1239,7 +1238,7 @@ function renderMemberDetail() {
       });
     }
   }
-  
+
   // Renderização de avisos
   const warnList = document.getElementById("member-warnings-list");
   if (warnList) {
@@ -1264,19 +1263,19 @@ function renderMemberDetail() {
   }
 }
 
-window.editMemberDossier = function(memberId) {
+window.editMemberDossier = function (memberId) {
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
-  
+
   editingMemberId = memberId;
-  
+
   // Alterar título do modal
   const modalTitle = document.querySelector('#modal-new-member .modal-title');
   if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-users-cog"></i> Editar Dossiê de Membro';
-  
+
   // Abrir o modal
   openModal('modal-new-member');
-  
+
   // Preencher dados cadastrais básicos
   document.getElementById("m-full-name").value = m.fullName || "";
   document.getElementById("m-nickname").value = m.nickname || "";
@@ -1289,18 +1288,18 @@ window.editMemberDossier = function(memberId) {
   document.getElementById("m-recruiter").value = m.recruiter || "";
   document.getElementById("m-join-date").value = m.joinDate || "";
   document.getElementById("m-trust").value = m.trust || 50;
-  
+
   // Status toggle
   const toggle = document.getElementById("m-status-toggle");
   if (toggle) {
     toggle.checked = (m.status === "Active");
     toggle.dispatchEvent(new Event("change"));
   }
-  
+
   // Observações e Equipamentos
   document.getElementById("m-notes").value = m.notes || "";
   document.getElementById("m-equipment").value = m.equipment || "";
-  
+
   // Foto de perfil
   const preview = document.getElementById("m-photo-preview");
   const box = document.getElementById("m-photo-upload-box");
@@ -1323,7 +1322,7 @@ window.editMemberDossier = function(memberId) {
       tempUploadedImage["new-member"] = null;
     }
   }
-  
+
   // Veículos
   const container = document.getElementById("m-form-vehicles-container");
   if (container) {
@@ -1359,10 +1358,10 @@ window.editMemberDossier = function(memberId) {
   }
 }
 
-window.toggleMemberStatus = function(memberId) {
+window.toggleMemberStatus = function (memberId) {
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
-  
+
   const oldStatus = m.status;
   if (oldStatus === "Archived" || oldStatus === "Inactive") {
     m.status = "Active";
@@ -1370,39 +1369,39 @@ window.toggleMemberStatus = function(memberId) {
     m.status = "Inactive";
   }
   m.lastActivity = new Date().toISOString().slice(0, 16).replace("T", " ");
-  
+
   const statusLabel = m.status === "Active" ? "Ativo" : "Inativo";
   m.history.unshift({
     time: new Date().toISOString().slice(0, 16).replace("T", " "),
     desc: `Status de matrícula alterado para: <strong>${statusLabel}</strong>.`
   });
-  
+
   logActivity(`Status de filiação de ${m.fullName} modificado para ${statusLabel}`, "Membro");
   saveState();
   renderMembersList();
   showToast(`Status de ${m.fullName} alterado para ${statusLabel}`, "success");
 }
 
-window.deleteMemberDossier = function(memberId) {
+window.deleteMemberDossier = function (memberId) {
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
-  
+
   if (m.status === "Archived") {
     // Exclusão definitiva
     if (confirm(`Tem certeza que deseja EXCLUIR DEFINITIVAMENTE o dossiê de ${m.fullName}? Esta ação é irreversível.`)) {
       const idx = state.members.findIndex(member => member.id === memberId);
       if (idx !== -1) {
         state.members.splice(idx, 1);
-        
+
         // Remover veículos da frota global pertencentes ao membro excluído
         state.vehicles = state.vehicles.filter(v => v.owner !== m.fullName);
-        
+
         // Se for o membro ativo, focar em outro membro não excluído
         const remaining = state.members.filter(member => member.status !== "Archived");
         if (activeMemberId === memberId) {
           activeMemberId = remaining.length > 0 ? remaining[0].id : null;
         }
-        
+
         logActivity(`Dossiê de ${m.fullName} excluído definitivamente do sindicato.`, "Membro");
         saveState();
         renderMembersList();
@@ -1418,16 +1417,16 @@ window.deleteMemberDossier = function(memberId) {
         time: new Date().toISOString().slice(0, 16).replace("T", " "),
         desc: "Dossiê arquivado na lista de excluídos."
       });
-      
+
       logActivity(`Dossiê de ${m.fullName} arquivado na lixeira do sindicato.`, "Membro");
       saveState();
-      
+
       // Selecionar outro membro operacional
       const remaining = state.members.filter(member => member.status !== "Archived");
       if (activeMemberId === memberId) {
         activeMemberId = remaining.length > 0 ? remaining[0].id : null;
       }
-      
+
       renderMembersList();
       showToast(`Dossiê de ${m.fullName} arquivado`, "error");
     }
@@ -1435,19 +1434,19 @@ window.deleteMemberDossier = function(memberId) {
 }
 
 // Navegação de abas no dossiê
-window.switchMemberTab = function(event, tabId) {
+window.switchMemberTab = function (event, tabId) {
   const panel = event.target.closest(".tab-container");
   if (!panel) return;
-  
+
   panel.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
   panel.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-  
+
   event.target.classList.add("active");
   const target = document.getElementById(tabId);
   if (target) target.classList.add("active");
 }
 
-window.toggleAddWarningForm = function() {
+window.toggleAddWarningForm = function () {
   const container = document.getElementById("add-warning-form-container");
   const chevron = document.getElementById("add-warning-chevron");
   if (container && chevron) {
@@ -1461,19 +1460,19 @@ window.toggleAddWarningForm = function() {
   }
 }
 
-window.submitAddWarning = function(event, memberId) {
+window.submitAddWarning = function (event, memberId) {
   event.preventDefault();
-  
+
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
-  
+
   const title = document.getElementById("w-title-input").value;
   const level = document.getElementById("w-level-input").value;
   const text = document.getElementById("w-reason-input").value;
-  
+
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10);
-  
+
   const newWarning = {
     id: "WRN-" + (m.warnings ? m.warnings.length + 101 : 101),
     title,
@@ -1482,37 +1481,37 @@ window.submitAddWarning = function(event, memberId) {
     level,
     admin: state.settings.adminName || "Vito Scaletta"
   };
-  
+
   if (!m.warnings) m.warnings = [];
   m.warnings.push(newWarning);
-  
+
   // Deduzir alguns pontos de lealdade caso a advertência seja crítica/alta
   let trustPenalty = 0;
   if (level === "Critical") trustPenalty = 20;
   else if (level === "High") trustPenalty = 10;
   else if (level === "Medium") trustPenalty = 5;
-  
+
   m.trust = Math.max(0, m.trust - trustPenalty);
   m.lastActivity = now.toISOString().slice(0, 16).replace("T", " ");
-  
+
   const threatLabels = { Low: "Baixo", Medium: "Médio", High: "Alto", Critical: "Crítico" };
   m.history.unshift({
     time: now.toISOString().slice(0, 16).replace("T", " "),
     desc: `Recebeu advertência oficial: <strong>${title}</strong> (${threatLabels[level]}).`
   });
-  
+
   logActivity(`Advertência aplicada a ${m.fullName}: ${title} [${threatLabels[level]}]`, "Membro");
   saveState();
-  
+
   // Re-renderizar o dossiê mantendo a aba Avisos aberta
   renderMembersList();
-  
+
   // Reabrir a aba de avisos
   const tabBtn = document.querySelector(".tab-button[onclick*='tab-warnings']");
   if (tabBtn) {
     tabBtn.click();
   }
-  
+
   showToast(`Advertência registrada para ${m.fullName}`, "error");
 }
 
@@ -1520,27 +1519,27 @@ window.submitAddWarning = function(event, memberId) {
 function renderRecruitment() {
   const grid = document.getElementById("recruitment-grid-container");
   if (!grid) return;
-  
+
   grid.innerHTML = "";
-  
+
   if (state.recruitment.length === 0) {
     grid.innerHTML = "<p style='color: var(--text-muted); font-size: 0.8rem; grid-column: span 3; text-align: center; padding: 40px;'>Nenhuma ficha de recrutamento registrada.</p>";
     return;
   }
-  
+
   state.recruitment.forEach(r => {
     const card = document.createElement("div");
     card.className = "recruitment-card";
-    
+
     let statusClass = "badge-pending";
     if (r.status === "Approved") statusClass = "badge-active";
     if (r.status === "Rejected") statusClass = "badge-inactive";
-    
+
     let materialsHtml = "";
     r.materials.forEach(m => {
       materialsHtml += `<span class="material-tag checked">${m}</span>`;
     });
-    
+
     card.innerHTML = `
       <div class="candidate-photo-header">
         <img src="${r.photo || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=250'}" class="candidate-photo" alt="${r.fullName}">
@@ -1598,13 +1597,13 @@ function renderRecruitment() {
 }
 
 // Transição do Recruta para Membro
-window.transitionRecruit = function(recruitId, newStatus) {
+window.transitionRecruit = function (recruitId, newStatus) {
   const r = state.recruitment.find(cand => cand.id === recruitId);
   if (!r) return;
-  
+
   r.status = newStatus;
   logActivity(`Status de recrutamento de ${r.fullName} alterado para: ${statusTranslations[newStatus] || newStatus}`, "Membro");
-  
+
   if (newStatus === "Approved") {
     const newId = "MEM-0" + (state.members.length + 1);
     const newMember = {
@@ -1635,7 +1634,7 @@ window.transitionRecruit = function(recruitId, newStatus) {
     };
     state.members.push(newMember);
     showToast(`${r.fullName} agora é membro! Registro: ${newId}`, "success");
-    
+
     state.vehicles.push({
       model: r.vehicleUsed.model,
       plate: r.vehicleUsed.plate,
@@ -1648,7 +1647,7 @@ window.transitionRecruit = function(recruitId, newStatus) {
   } else {
     showToast(`Dossier arquivado como rejeitado.`, "error");
   }
-  
+
   saveState();
   renderRecruitment();
 }
@@ -1657,34 +1656,72 @@ window.transitionRecruit = function(recruitId, newStatus) {
 function renderOperations() {
   const container = document.getElementById("operations-grid-container");
   if (!container) return;
-  
+
   container.innerHTML = "";
-  
-  if (state.operations.length === 0) {
-    container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.8rem; grid-column: span 3; text-align: center; padding: 40px;'>Nenhuma operação tática em andamento.</p>";
+
+  const filterEl = document.getElementById("operation-filter-status");
+  const filterStatus = filterEl ? filterEl.value : "Active";
+
+  const filteredOps = state.operations.filter(op => {
+    if (filterStatus === "Archived") {
+      return op.status === "Completed" || op.status === "Cancelled";
+    } else {
+      return op.status !== "Completed" && op.status !== "Cancelled";
+    }
+  });
+
+  if (filteredOps.length === 0) {
+    container.innerHTML = `<p style='color: var(--text-muted); font-size: 0.8rem; grid-column: span 3; text-align: center; padding: 40px;'>${filterStatus === 'Archived' ? 'Nenhuma operação arquivada.' : 'Nenhuma operação tática em andamento.'}</p>`;
     return;
   }
-  
-  state.operations.forEach(op => {
+
+  filteredOps.forEach(op => {
     const card = document.createElement("div");
     card.className = "operation-card";
-    
+
     let threatClass = "threat-low";
     if (op.threatLevel === "Medium" || op.threatLevel === "Médio") threatClass = "threat-medium";
     if (op.threatLevel === "High" || op.threatLevel === "Alto") threatClass = "threat-high";
     if (op.threatLevel === "Critical" || op.threatLevel === "Crítico") threatClass = "threat-critical";
-    
+
     let avatarsHtml = "";
     op.assignedTeam.forEach(member => {
       const match = state.members.find(m => m.fullName.includes(member) || (m.nickname && m.nickname.includes(member)));
       const url = match ? match.photo : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=50";
       avatarsHtml += `<img src="${url}" class="op-team-avatar" title="${member}">`;
     });
-    
+
+    const threatLabel = threatTranslations[op.threatLevel] || op.threatLevel;
+    const statusLabel = op.status === 'Active' ? 'Ativa' : op.status === 'Completed' ? 'Concluída' : op.status === 'Planning' ? 'Planejamento' : op.status === 'Cancelled' ? 'Cancelada' : op.status;
+    const statusClass = op.status === 'Active' ? 'badge-active' : op.status === 'Completed' ? 'badge-active' : op.status === 'Planning' ? 'badge-pending' : 'badge-inactive';
+
+    let row1Buttons = "";
+    let row2Buttons = "";
+
+    if (op.status !== "Completed" && op.status !== "Cancelled") {
+      row1Buttons = `
+        <button class="btn btn-secondary btn-sm" onclick="viewOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9;"><i class="fas fa-eye"></i> Detalhes</button>
+        <button class="btn btn-secondary btn-sm" onclick="editOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff;"><i class="fas fa-edit"></i> Editar</button>
+      `;
+      row2Buttons = `
+        <button class="btn btn-success btn-sm" onclick="changeOpStatus('${op.id}', 'Completed')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem;"><i class="fas fa-check-circle"></i> Concluir</button>
+        <button class="btn btn-danger btn-sm" onclick="changeOpStatus('${op.id}', 'Cancelled')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem;"><i class="fas fa-ban"></i> Cancelar</button>
+      `;
+    } else {
+      row1Buttons = `
+        <button class="btn btn-secondary btn-sm" onclick="viewOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9;"><i class="fas fa-eye"></i> Detalhes</button>
+        <button class="btn btn-secondary btn-sm" onclick="editOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff;"><i class="fas fa-edit"></i> Editar</button>
+      `;
+      row2Buttons = `
+        <button class="btn btn-secondary btn-sm" onclick="restoreOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #00897b; border-color: #00796b; color: #fff;"><i class="fas fa-undo"></i> Restaurar</button>
+        <button class="btn btn-secondary btn-sm" onclick="deleteOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff;"><i class="fas fa-trash-alt"></i> Excluir</button>
+      `;
+    }
+
     card.innerHTML = `
       <div class="operation-card-header">
         <h4 class="operation-title-sub">${op.title}</h4>
-        <span class="threat-badge ${threatClass}">${threatTranslations[op.threatLevel]}</span>
+        <span class="threat-badge ${threatClass}">${threatLabel}</span>
       </div>
       
       <div class="op-target-block">
@@ -1703,11 +1740,11 @@ function renderOperations() {
       
       <div class="candidate-detail-item">
         <span class="candidate-detail-label">Status da Operação:</span>
-        <span class="profile-hero-badge ${op.status === 'Active' ? 'badge-active' : op.status === 'Completed' ? 'badge-active' : op.status === 'Planning' ? 'badge-pending' : 'badge-inactive'}" style="position: static; transform: none; font-size: 0.65rem; padding: 2px 6px;">${op.status === 'Active' ? 'Ativa' : op.status === 'Completed' ? 'Concluída' : op.status === 'Planning' ? 'Planejamento' : 'Cancelada'}</span>
+        <span class="profile-hero-badge ${statusClass}" style="position: static; transform: none; font-size: 0.65rem; padding: 2px 6px;">${statusLabel}</span>
       </div>
       
       <div class="candidate-materials-label">Motivos da Ação / Vigilância</div>
-      <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+      <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); margin-bottom: 12px; height: 40px; overflow-y: auto;">
         "${op.reason}"
       </p>
       
@@ -1716,33 +1753,33 @@ function renderOperations() {
         ${op.timeline.map(t => `<div style="margin-bottom: 4px;"><strong>${t.time}</strong> - ${t.text}</div>`).join("")}
       </div>
       
-      <div class="candidate-actions">
-        ${op.status !== "Completed" && op.status !== "Cancelled" ? `
-          <button class="btn btn-success btn-sm" onclick="changeOpStatus('${op.id}', 'Completed')"><i class="fas fa-check-circle"></i> Concluir</button>
-          <button class="btn btn-danger btn-sm" onclick="changeOpStatus('${op.id}', 'Cancelled')"><i class="fas fa-ban"></i> Cancelar</button>
-        ` : `
-          <button class="btn btn-secondary btn-sm" disabled style="width: 100%;"><i class="fas fa-archive"></i> Operação Arquivada</button>
-        `}
+      <div class="candidate-actions" style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; gap: 6px;">
+          ${row1Buttons}
+        </div>
+        <div style="display: flex; gap: 6px;">
+          ${row2Buttons}
+        </div>
       </div>
     `;
     container.appendChild(card);
   });
 }
 
-window.changeOpStatus = function(opId, nextStatus) {
+window.changeOpStatus = function (opId, nextStatus) {
   const op = state.operations.find(o => o.id === opId);
   if (!op) return;
-  
+
   op.status = nextStatus;
   const now = new Date();
   const timeStr = now.toISOString().slice(0, 10) + " " + now.toTimeString().slice(0, 5);
-  
+
   const labelMap = { Completed: "Concluída", Cancelled: "Cancelada" };
   op.timeline.unshift({ time: timeStr, text: `Status da operação alterado para: ${labelMap[nextStatus]}.` });
-  
+
   logActivity(`Operação ${op.title} arquivada como: ${labelMap[nextStatus]}.`, "Operação");
   showToast(`Operação ${op.title} atualizada!`, "success");
-  
+
   saveState();
   renderOperations();
 }
@@ -1753,18 +1790,18 @@ let treasuryChart = null;
 function renderTreasury() {
   const tableBody = document.getElementById("treasury-transactions-body");
   if (!tableBody) return;
-  
+
   tableBody.innerHTML = "";
-  
-  const sorted = [...state.transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
-  
+
+  const sorted = [...state.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
   sorted.forEach(t => {
     const tr = document.createElement("tr");
-    
+
     let badgeClass = "badge-pending";
     if (t.type === "Income" || t.type === "Donation") badgeClass = "badge-active";
     if (t.type === "Expense" || t.type === "Operation Cost" || t.type === "Payroll") badgeClass = "badge-inactive";
-    
+
     tr.innerHTML = `
       <td>${t.date}</td>
       <td><span class="profile-hero-badge ${badgeClass}" style="position: static; transform: none; font-size: 0.6rem; padding: 2px 8px;">${transTypeTranslations[t.type] || t.type}</span></td>
@@ -1776,23 +1813,23 @@ function renderTreasury() {
     `;
     tableBody.appendChild(tr);
   });
-  
+
   const ctx = document.getElementById("treasury-pie-chart");
   if (ctx) {
     if (treasuryChart) treasuryChart.destroy();
-    
+
     let income = 0;
     let payroll = 0;
     let opCosts = 0;
     let expenses = 0;
-    
+
     state.transactions.forEach(t => {
       if (t.type === "Income" || t.type === "Donation") income += t.amount;
       else if (t.type === "Payroll") payroll += t.amount;
       else if (t.type === "Operation Cost") opCosts += t.amount;
       else expenses += t.amount;
     });
-    
+
     treasuryChart = new Chart(ctx, {
       type: 'doughnut',
       data: {
@@ -1819,18 +1856,18 @@ function renderTreasury() {
       }
     });
   }
-  
+
   const totalInc = state.transactions.filter(t => t.type === "Income" || t.type === "Donation").reduce((acc, t) => acc + t.amount, 0);
   const totalExp = state.transactions.filter(t => t.type !== "Income" && t.type !== "Donation").reduce((acc, t) => acc + t.amount, 0);
-  
+
   const formattedInc = "$" + totalInc.toLocaleString();
   const formattedExp = "$" + totalExp.toLocaleString();
-  
+
   const incNode = document.getElementById("treasury-income-val");
   const expNode = document.getElementById("treasury-expenses-val");
   if (incNode) incNode.innerText = formattedInc;
   if (expNode) expNode.innerText = formattedExp;
-  
+
   updateTopbarTotals();
 }
 
@@ -1838,22 +1875,22 @@ function renderTreasury() {
 function renderVehicles() {
   const container = document.getElementById("vehicles-grid-container");
   if (!container) return;
-  
+
   container.innerHTML = "";
-  
+
   if (state.vehicles.length === 0) {
     container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 40px; grid-column: span 4;'>Nenhum veículo registrado na frota geral.</p>";
     return;
   }
-  
+
   state.vehicles.forEach((v, index) => {
     const card = document.createElement("div");
     card.className = "vehicle-card";
-    
+
     let statusClass = "badge-active";
     if (v.status === "Danificado") statusClass = "badge-pending";
     if (v.status === "Apreendido") statusClass = "badge-inactive";
-    
+
     card.innerHTML = `
       <div style="position: relative;">
         <img src="${v.photo || 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=300'}" alt="${v.model}" class="vehicle-photo" style="height: 140px;">
@@ -1882,10 +1919,10 @@ function renderVehicles() {
   });
 }
 
-window.deleteVehicle = function(index) {
+window.deleteVehicle = function (index) {
   const v = state.vehicles[index];
   if (!v) return;
-  
+
   if (confirm(`Remover veículo: ${v.model} [${v.plate}] dos registros gerais?`)) {
     logActivity(`Veículo ${v.model} [${v.plate}] excluído do pátio do clube.`, "Sistema");
     state.vehicles.splice(index, 1);
@@ -1895,10 +1932,10 @@ window.deleteVehicle = function(index) {
   }
 }
 
-window.editVehicleNotes = function(index) {
+window.editVehicleNotes = function (index) {
   const v = state.vehicles[index];
   if (!v) return;
-  
+
   const newNotes = prompt(`Alterar observações de ${v.model} [${v.plate}]:`, v.notes);
   if (newNotes !== null) {
     v.notes = newNotes;
@@ -1913,22 +1950,22 @@ window.editVehicleNotes = function(index) {
 function renderEquipment() {
   const container = document.getElementById("equipment-grid-container");
   if (!container) return;
-  
+
   container.innerHTML = "";
-  
+
   if (state.equipment.length === 0) {
     container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 40px; grid-column: span 4;'>Nenhum item estocado no armaria.</p>";
     return;
   }
-  
+
   state.equipment.forEach((item, index) => {
     const card = document.createElement("div");
     card.className = "equipment-card";
-    
+
     let statusClass = "badge-active";
     if (item.status === "Manutenção Necessária") statusClass = "badge-inactive";
     if (item.status === "Bom") statusClass = "badge-pending";
-    
+
     card.innerHTML = `
       <div class="equipment-photo-header">
         <img src="${item.photo || 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&q=80&w=200'}" alt="${item.name}" class="equipment-photo">
@@ -1955,20 +1992,20 @@ function renderEquipment() {
   });
 }
 
-window.adjustEquipmentQty = function(index, delta) {
+window.adjustEquipmentQty = function (index, delta) {
   const item = state.equipment[index];
   if (!item) return;
-  
+
   item.quantity = Math.max(0, item.quantity + delta);
   logActivity(`Ajustado estoque de ${item.name} para: ${item.quantity} unidades.`, "Sistema");
   saveState();
   renderEquipment();
 }
 
-window.deleteEquipment = function(index) {
+window.deleteEquipment = function (index) {
   const item = state.equipment[index];
   if (!item) return;
-  
+
   if (confirm(`Remover item ${item.name} do armaria?`)) {
     logActivity(`Armamento ${item.name} removido do inventário permanente.`, "Sistema");
     state.equipment.splice(index, 1);
@@ -1982,25 +2019,25 @@ window.deleteEquipment = function(index) {
 function renderProperties() {
   const container = document.getElementById("properties-grid-container");
   if (!container) return;
-  
+
   container.innerHTML = "";
-  
+
   const pinsContainer = document.getElementById("tactical-map-pins");
   if (pinsContainer) pinsContainer.innerHTML = "";
-  
+
   state.properties.forEach((p, index) => {
     const card = document.createElement("div");
     card.className = "property-card";
     card.id = `property-card-${index}`;
     card.style.cursor = "pointer";
     card.style.transition = "all 0.2s ease";
-    
+
     card.addEventListener("click", () => {
       focusMapPin(index);
     });
-    
+
     const coords = p.coords || { x: 50, y: 50 };
-    
+
     card.innerHTML = `
       <div class="property-photo-wrapper" style="position: relative;">
         <img src="${p.photo || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=300'}" alt="${p.name}" class="property-photo" style="height: 110px; width: 100%; object-fit: cover; border-bottom: 1px solid var(--border-color);">
@@ -2031,20 +2068,20 @@ function renderProperties() {
       </div>
     `;
     container.appendChild(card);
-    
+
     if (pinsContainer) {
       let icon = "fa-building";
       if (p.type === "Casa Segura") icon = "fa-home";
       else if (p.type === "Galpão") icon = "fa-warehouse";
       else if (p.type === "Sede do Clube") icon = "fa-shield-alt";
       else if (p.type.includes("Fachada")) icon = "fa-dollar-sign";
-      
+
       const blip = document.createElement("div");
       blip.className = "map-blip";
       blip.id = `map-blip-${index}`;
       blip.style.left = `${coords.x}%`;
       blip.style.top = `${coords.y}%`;
-      
+
       blip.innerHTML = `
         <i class="fas ${icon}"></i>
         <div class="map-blip-tooltip">
@@ -2052,18 +2089,18 @@ function renderProperties() {
           <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 2px;">${p.type} | Seg: ${p.security}</div>
         </div>
       `;
-      
+
       blip.addEventListener("click", (e) => {
         e.stopPropagation();
         focusPropertyCard(index);
       });
-      
+
       pinsContainer.appendChild(blip);
     }
   });
 }
 
-window.focusPropertyCard = function(index) {
+window.focusPropertyCard = function (index) {
   document.querySelectorAll(".property-card").forEach(c => {
     c.style.borderColor = "var(--border-color)";
     c.style.background = "";
@@ -2071,21 +2108,21 @@ window.focusPropertyCard = function(index) {
   document.querySelectorAll(".map-blip").forEach(b => {
     b.classList.remove("pulse");
   });
-  
+
   const card = document.getElementById(`property-card-${index}`);
   if (card) {
     card.style.borderColor = "var(--accent-color-hover)";
     card.style.background = "rgba(183, 28, 28, 0.03)";
     card.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
-  
+
   const blip = document.getElementById(`map-blip-${index}`);
   if (blip) {
     blip.classList.add("pulse");
   }
 }
 
-window.focusMapPin = function(index) {
+window.focusMapPin = function (index) {
   focusPropertyCard(index);
 }
 
@@ -2093,16 +2130,16 @@ window.focusMapPin = function(index) {
 function renderMeetings() {
   const body = document.getElementById("meetings-table-body");
   if (!body) return;
-  
+
   body.innerHTML = "";
-  
+
   state.meetings.forEach((mt, idx) => {
     const tr = document.createElement("tr");
-    
+
     let badgeClass = "badge-pending";
     if (mt.attendance === "Completed") badgeClass = "badge-active";
     if (mt.attendance === "Cancelled") badgeClass = "badge-inactive";
-    
+
     tr.innerHTML = `
       <td style="color: var(--text-primary); font-weight: 700;">${mt.title}</td>
       <td>${mt.date} às ${mt.time}</td>
@@ -2119,13 +2156,13 @@ function renderMeetings() {
   });
 }
 
-window.toggleMeetingAttendance = function(idx) {
+window.toggleMeetingAttendance = function (idx) {
   const mt = state.meetings[idx];
   if (!mt) return;
-  
-  mt.attendance = mt.attendance === "Scheduled" ? "Completed" : 
-                  mt.attendance === "Completed" ? "Cancelled" : "Scheduled";
-                  
+
+  mt.attendance = mt.attendance === "Scheduled" ? "Completed" :
+    mt.attendance === "Completed" ? "Cancelled" : "Scheduled";
+
   logActivity(`Status da reunião '${mt.title}' atualizado para ${mt.attendance}.`, "Sistema");
   saveState();
   renderMeetings();
@@ -2136,14 +2173,14 @@ window.toggleMeetingAttendance = function(idx) {
 function renderActivities() {
   const container = document.getElementById("activities-timeline-container");
   if (!container) return;
-  
+
   container.innerHTML = "";
-  
+
   if (state.activities.length === 0) {
     container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.8rem;'>Sem histórico de atividades registrado.</p>";
     return;
   }
-  
+
   state.activities.forEach(act => {
     const div = document.createElement("div");
     div.className = "timeline-event";
@@ -2160,13 +2197,13 @@ function renderReportPreview(type) {
   const titleNode = document.getElementById("report-preview-title");
   const bodyNode = document.getElementById("report-preview-body");
   const dateNode = document.getElementById("report-date-meta");
-  
+
   if (!titleNode || !bodyNode) return;
-  
+
   const now = new Date();
   if (dateNode) dateNode.innerText = now.toLocaleDateString();
 
-  switch(type) {
+  switch (type) {
     case "members":
       titleNode.innerText = "Dossiê Resumido dos Membros";
       bodyNode.innerHTML = `
@@ -2201,7 +2238,7 @@ function renderReportPreview(type) {
         </p>
       `;
       break;
-      
+
     case "operations":
       titleNode.innerText = "Análise Geral de Operações Táticas";
       bodyNode.innerHTML = `
@@ -2222,7 +2259,7 @@ function renderReportPreview(type) {
         </div>
       `;
       break;
-      
+
     case "treasury":
       titleNode.innerText = "Balancete de Entradas e Despesas";
       bodyNode.innerHTML = `
@@ -2257,7 +2294,7 @@ function renderReportPreview(type) {
         </div>
       `;
       break;
-      
+
     case "recruitment":
       titleNode.innerText = "Fila de Candidatos em Triagem";
       bodyNode.innerHTML = `
@@ -2286,7 +2323,7 @@ function renderReportPreview(type) {
         </table>
       `;
       break;
-      
+
     case "equipment":
       titleNode.innerText = "Auditoria de Armamento Permanente";
       bodyNode.innerHTML = `
@@ -2322,13 +2359,13 @@ function renderReportPreview(type) {
 
 // ==================== ENVIO DE FORMULÁRIOS ====================
 function initFormSubmissions() {
-  
+
   // 1. FORMULÁRIO NOVO MEMBRO
   const formMember = document.getElementById("form-new-member");
   if (formMember) {
     formMember.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const name = document.getElementById("m-full-name").value;
       const nick = document.getElementById("m-nickname").value;
       const phone = document.getElementById("m-phone").value;
@@ -2338,12 +2375,12 @@ function initFormSubmissions() {
       const address = document.getElementById("m-address").value;
       const rank = document.getElementById("m-rank").value;
       const recruiter = document.getElementById("m-recruiter").value || "Vito Scaletta";
-      const joinDate = document.getElementById("m-join-date").value || new Date().toISOString().slice(0,10);
+      const joinDate = document.getElementById("m-join-date").value || new Date().toISOString().slice(0, 10);
       const trust = parseInt(document.getElementById("m-trust").value) || 50;
       const isActive = document.getElementById("m-status-toggle").checked;
       const notes = document.getElementById("m-notes").value;
       const equipmentStr = document.getElementById("m-equipment").value;
-      
+
       const vehicles = [];
       const vehicleRows = document.querySelectorAll("#m-form-vehicles-container .form-vehicle-row");
       vehicleRows.forEach(row => {
@@ -2355,14 +2392,14 @@ function initFormSubmissions() {
           vehicles.push({ model: vModel, plate: vPlate, color: vColor, photo: vPhoto });
         }
       });
-      
+
       if (editingMemberId) {
         // Modo Edição
         const memberIndex = state.members.findIndex(m => m.id === editingMemberId);
         if (memberIndex !== -1) {
           const m = state.members[memberIndex];
           const oldName = m.fullName;
-          
+
           m.fullName = name;
           m.nickname = nick;
           m.phone = phone;
@@ -2382,12 +2419,12 @@ function initFormSubmissions() {
           m.equipment = equipmentStr;
           m.vehicles = vehicles;
           m.lastActivity = new Date().toISOString().slice(0, 16).replace("T", " ");
-          
+
           m.history.unshift({
             time: new Date().toISOString().slice(0, 16).replace("T", " "),
             desc: "Dossiê atualizado pelo administrador."
           });
-          
+
           // Sincronizar a frota de veículos
           state.vehicles = state.vehicles.filter(v => v.owner !== name && v.owner !== oldName);
           vehicles.forEach(v => {
@@ -2401,7 +2438,7 @@ function initFormSubmissions() {
               notes: "Veículo atualizado no dossiê de " + name
             });
           });
-          
+
           logActivity(`Dossiê do membro ${name} (${editingMemberId}) atualizado`, "Membro");
           saveState();
           closeModal("modal-new-member");
@@ -2411,10 +2448,10 @@ function initFormSubmissions() {
           return;
         }
       }
-      
+
       // Modo Criação
       const newId = "MEM-0" + (state.members.length + 1);
-      
+
       // Sincronizar veículos novos na frota
       vehicles.forEach(v => {
         state.vehicles.push({
@@ -2427,7 +2464,7 @@ function initFormSubmissions() {
           notes: "Veículo cadastrado na criação do dossiê do membro."
         });
       });
-      
+
       const newMember = {
         id: newId,
         fullName: name,
@@ -2453,52 +2490,52 @@ function initFormSubmissions() {
           { time: new Date().toISOString().slice(0, 16).replace("T", " "), desc: "Dossiê inicializado na categoria: <strong>" + rankTranslations[rank] + "</strong>." }
         ]
       };
-      
+
       if (equipmentStr) {
         logActivity(`Designou o arsenal '${equipmentStr}' para o membro ${name}`, "Sistema");
       }
-      
+
       state.members.push(newMember);
       logActivity(`Membro cadastrado: ${name} (${newId})`, "Membro");
       saveState();
-      
+
       closeModal("modal-new-member");
       renderMembersList();
       showToast(`Membro registrado com sucesso sob dossiê ${newId}`, "success");
     });
   }
-  
+
   // 2. FORMULÁRIO NOVO RECRUTA
   const formRecruit = document.getElementById("form-new-recruit");
   if (formRecruit) {
     formRecruit.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const name = document.getElementById("r-full-name").value;
       const nick = document.getElementById("r-nickname").value;
       const phone = document.getElementById("r-phone").value;
       const disc = document.getElementById("r-discord").value;
       const age = parseInt(document.getElementById("r-age").value) || 25;
       const recruiter = document.getElementById("r-recruiter").value || "Vito Scaletta";
-      const mDate = document.getElementById("r-meet-date").value || new Date().toISOString().slice(0,10);
+      const mDate = document.getElementById("r-meet-date").value || new Date().toISOString().slice(0, 10);
       const mTime = document.getElementById("r-meet-time").value || "12:00";
       const mLoc = document.getElementById("r-meet-loc").value || "Sede Principal";
-      
+
       const vModel = document.getElementById("r-vehicle-model").value || "Smith Coupe";
       const vColor = document.getElementById("r-vehicle-color").value || "Preto";
       const vPlate = document.getElementById("r-vehicle-plate").value || "DRFT-88";
-      
+
       const mission = document.getElementById("r-mission").value;
-      
+
       const materials = [];
       document.querySelectorAll(".r-materials-check:checked").forEach(chk => {
         materials.push(chk.value);
       });
       const customMat = document.getElementById("r-custom-material").value;
       if (customMat) materials.push(customMat);
-      
+
       const newId = "REC-0" + (state.recruitment.length + 1);
-      
+
       const newCandidate = {
         id: newId,
         fullName: name,
@@ -2516,108 +2553,139 @@ function initFormSubmissions() {
         photo: tempUploadedImage["new-recruit"] || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=250",
         status: "Pending"
       };
-      
+
       state.recruitment.push(newCandidate);
       logActivity(`Candidato em recrutamento criado: ${name} (${newId})`, "Membro");
       saveState();
-      
+
       closeModal("modal-new-recruit");
       renderRecruitment();
       showToast(`Candidato ${name} sob avaliação física cadastrada.`, "success");
     });
   }
-  
+
   // 3. FORMULÁRIO DE LANÇAR OPERAÇÃO
   const formOp = document.getElementById("form-new-operation");
   if (formOp) {
     formOp.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const tName = document.getElementById("o-target-name").value;
       const tAlias = document.getElementById("o-target-alias").value;
       const tPhone = document.getElementById("o-target-phone").value;
       const tAge = parseInt(document.getElementById("o-target-age").value) || 30;
       const tLoc = document.getElementById("o-target-location").value || "Desconhecido";
-      
+
       const title = document.getElementById("o-title").value;
       const threat = document.getElementById("o-threat-level").value;
       const reason = document.getElementById("o-reason").value;
-      
+
       const team = document.getElementById("o-members").value.split(",").map(item => item.trim());
       const vehicles = document.getElementById("o-vehicles").value.split(",").map(item => item.trim());
       const equipment = document.getElementById("o-equipment").value.split(",").map(item => item.trim());
-      
+
       const newId = "OP-0" + (state.operations.length + 1);
       const now = new Date();
       const timeStr = now.toISOString().slice(0, 10) + " " + now.toTimeString().slice(0, 5);
-      
-      const newOp = {
-        id: newId,
-        title,
-        targetName: tName,
-        targetAlias: tAlias,
-        targetPhone: tPhone,
-        targetAge: tAge,
-        targetLocation: tLoc,
-        targetPhoto: tempUploadedImage["new-operation"] || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=250",
-        reason,
-        threatLevel: threat,
-        assignedTeam: team.filter(Boolean),
-        assignedVehicles: vehicles.filter(Boolean),
-        assignedEquipment: equipment.filter(Boolean),
-        status: "Active",
-        timeline: [
-          { time: timeStr, text: "Operação autorizada e dossiê do alvo cadastrado no sistema." },
-          { time: timeStr, text: "Unidades designadas para o ataque: " + team.join(", ") }
-        ]
-      };
-      
-      state.operations.push(newOp);
-      logActivity(`Iniciou a Operação: ${title} contra o alvo ${tName}`, "Operação");
-      saveState();
-      
+
+      if (editingOperationId) {
+        // Modo Edição
+        const opIndex = state.operations.findIndex(o => o.id === editingOperationId);
+        if (opIndex !== -1) {
+          const oldOp = state.operations[opIndex];
+          state.operations[opIndex] = {
+            ...oldOp,
+            title,
+            targetName: tName,
+            targetAlias: tAlias,
+            targetPhone: tPhone,
+            targetAge: tAge,
+            targetLocation: tLoc,
+            targetPhoto: tempUploadedImage["new-operation"] || oldOp.targetPhoto,
+            reason,
+            threatLevel: threat,
+            assignedTeam: team.filter(Boolean),
+            assignedVehicles: vehicles.filter(Boolean),
+            assignedEquipment: equipment.filter(Boolean),
+            media: [...opMediaList]
+          };
+          logActivity(`Editou a Operação: ${title} contra o alvo ${tName}`, "Operação");
+          saveState();
+          showToast(`Operação ${title} atualizada com sucesso!`, "success");
+        }
+        editingOperationId = null;
+      } else {
+        // Modo Criação
+        const newOp = {
+          id: newId,
+          title,
+          targetName: tName,
+          targetAlias: tAlias,
+          targetPhone: tPhone,
+          targetAge: tAge,
+          targetLocation: tLoc,
+          targetPhoto: tempUploadedImage["new-operation"] || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=250",
+          reason,
+          threatLevel: threat,
+          assignedTeam: team.filter(Boolean),
+          assignedVehicles: vehicles.filter(Boolean),
+          assignedEquipment: equipment.filter(Boolean),
+          status: "Active",
+          media: [...opMediaList],
+          timeline: [
+            { time: timeStr, text: "Operação autorizada e dossiê do alvo cadastrado no sistema." },
+            { time: timeStr, text: "Unidades designadas para o ataque: " + team.join(", ") }
+          ]
+        };
+
+        state.operations.push(newOp);
+        logActivity(`Iniciou a Operação: ${title} contra o alvo ${tName}`, "Operação");
+        saveState();
+        showToast(`Operação ${title} iniciada com sucesso!`, "success");
+      }
+
+      opMediaList = [];
       closeModal("modal-new-operation");
       renderOperations();
-      showToast(`Operação ${title} iniciada com sucesso!`, "success");
     });
   }
-  
+
   // 4. FORMULÁRIO DE LANÇAMENTO FINANCEIRO
   const formTrans = document.getElementById("form-new-transaction");
   if (formTrans) {
     formTrans.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const type = document.getElementById("t-type").value;
       const desc = document.getElementById("t-desc").value;
       const member = document.getElementById("t-member").value || "Vito Scaletta";
       const amount = parseInt(document.getElementById("t-amount").value) || 0;
-      
-      const today = new Date().toISOString().slice(0,10);
-      
+
+      const today = new Date().toISOString().slice(0, 10);
+
       state.transactions.unshift({ date: today, type, desc, member, amount });
       logActivity(`Transação financeira registrada [${transTypeTranslations[type]}]: ${desc} por $${amount}`, "Financial");
       saveState();
-      
+
       closeModal("modal-new-transaction");
       renderTreasury();
       showToast("Lançamento financeiro concluído", "success");
     });
   }
-  
+
   // 5. REGISTRAR VEÍCULO
   const formVehicle = document.getElementById("form-new-vehicle");
   if (formVehicle) {
     formVehicle.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const model = document.getElementById("v-model").value;
       const plate = document.getElementById("v-plate").value;
       const color = document.getElementById("v-color").value;
       const owner = document.getElementById("v-owner").value || "Frota Comum";
       const status = document.getElementById("v-status").value;
       const notes = document.getElementById("v-notes").value;
-      
+
       const newVeh = {
         model,
         plate,
@@ -2627,29 +2695,29 @@ function initFormSubmissions() {
         photo: tempUploadedImage["new-vehicle"] || "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=300",
         notes
       };
-      
+
       state.vehicles.push(newVeh);
       logActivity(`Registrou o veículo ${model} [${plate}] no cadastro do clube.`, "System");
       saveState();
-      
+
       closeModal("modal-new-vehicle");
       renderVehicles();
       showToast("Veículo registrado com sucesso", "success");
     });
   }
-  
+
   // 6. ADICIONAR EQUIPAMENTO
   const formEquip = document.getElementById("form-new-equipment");
   if (formEquip) {
     formEquip.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const name = document.getElementById("e-name").value;
       const category = document.getElementById("e-category").value;
       const quantity = parseInt(document.getElementById("e-quantity").value) || 1;
       const assigned = document.getElementById("e-assigned").value || "Cofre Central";
       const status = document.getElementById("e-status").value;
-      
+
       const newEquip = {
         name,
         category,
@@ -2658,30 +2726,30 @@ function initFormSubmissions() {
         status,
         photo: tempUploadedImage["new-equipment"] || "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&q=80&w=200"
       };
-      
+
       state.equipment.push(newEquip);
       logActivity(`Armaria adicionou item ${name}: ${quantity} unidades.`, "System");
       saveState();
-      
+
       closeModal("modal-new-equipment");
       renderEquipment();
       showToast("Equipamento registrado com sucesso", "success");
     });
   }
-  
+
   // 7. AGENDAR REUNIÃO
   const formMeeting = document.getElementById("form-new-meeting");
   if (formMeeting) {
     formMeeting.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const title = document.getElementById("mt-title").value;
       const date = document.getElementById("mt-date").value;
       const time = document.getElementById("mt-time").value;
       const location = document.getElementById("mt-location").value;
       const participants = document.getElementById("mt-participants").value || "Todos os membros ativos";
       const notes = document.getElementById("mt-notes").value;
-      
+
       state.meetings.push({
         title,
         date,
@@ -2691,37 +2759,37 @@ function initFormSubmissions() {
         attendance: "Scheduled",
         notes
       });
-      
+
       logActivity(`Agendou reunião do sindicato: ${title}`, "System");
       saveState();
-      
+
       closeModal("modal-new-meeting");
       renderMeetings();
       showToast("Reunião agendada com sucesso", "success");
     });
   }
-  
+
   // 8. REGISTRAR PROPRIEDADE (IMOVEL)
   const formProp = document.getElementById("form-new-property");
   if (formProp) {
     formProp.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const name = document.getElementById("p-name").value;
       const address = document.getElementById("p-address").value;
       const type = document.getElementById("p-type").value;
       const security = document.getElementById("p-security").value;
       const guards = document.getElementById("p-guards").value;
       const storage = document.getElementById("p-storage").value;
-      
+
       const xVal = parseFloat(document.getElementById("p-coords-x").value);
       const yVal = parseFloat(document.getElementById("p-coords-y").value);
-      
+
       if (isNaN(xVal) || isNaN(yVal)) {
         showToast("Por favor, marque a localização do GPS no mapa antes de salvar.", "error");
         return;
       }
-      
+
       const newProp = {
         name,
         address,
@@ -2732,11 +2800,11 @@ function initFormSubmissions() {
         photo: tempUploadedImage["new-property"] || "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400",
         coords: { x: xVal, y: yVal }
       };
-      
+
       state.properties.push(newProp);
       logActivity(`Registrou novo imóvel seguro do sindicato: ${name}`, "System");
       saveState();
-      
+
       closeModal("modal-new-property");
       renderProperties();
       showToast("Imóvel registrado com sucesso", "success");
@@ -2748,19 +2816,19 @@ function initFormSubmissions() {
   if (formAction) {
     formAction.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       const type = document.getElementById("act-type").value;
       const revenue = parseFloat(document.getElementById("act-revenue").value) || 0;
       const date = document.getElementById("act-date").value;
-      
+
       const checkboxes = document.querySelectorAll('input[name="act-member"]:checked');
       const selectedParticipants = Array.from(checkboxes).map(cb => cb.value);
-      
+
       if (selectedParticipants.length === 0) {
         showToast("Selecione pelo menos um participante para registrar a ação.", "error");
         return;
       }
-      
+
       // Sum up materials cost and collect them in an array
       const materials = [];
       let totalCost = 0;
@@ -2774,7 +2842,7 @@ function initFormSubmissions() {
           totalCost += mQty * mUnit;
         }
       });
-      
+
       if (editingActionId) {
         // Modo Edição
         const actIndex = state.actions.findIndex(act => act.id === editingActionId);
@@ -2787,7 +2855,9 @@ function initFormSubmissions() {
             profit: revenue - totalCost,
             date,
             participants: selectedParticipants,
-            materials: materials
+            materials: materials,
+            media: [...actionMediaList],
+            status: state.actions[actIndex].status || "Active"
           };
           logActivity(`Editou ação de campo: ${type} (${selectedParticipants.join(", ")})`, "Operação");
           saveState();
@@ -2804,7 +2874,9 @@ function initFormSubmissions() {
           profit: revenue - totalCost,
           date,
           participants: selectedParticipants,
-          materials: materials
+          materials: materials,
+          media: [...actionMediaList],
+          status: "Active"
         };
         if (!state.actions) state.actions = [];
         state.actions.push(newAct);
@@ -2812,37 +2884,38 @@ function initFormSubmissions() {
         saveState();
         showToast("Ação de campo registrada com sucesso", "success");
       }
-      
+
+      actionMediaList = [];
       closeModal("modal-new-action");
       renderActions();
     });
   }
 }
 
-window.pickPropertyCoords = function(event) {
+window.pickPropertyCoords = function (event) {
   // The image is scaled via CSS transform; we must account for pickerZoom and scroll offset.
   const scrollable = document.getElementById("map-picker-scrollable");
   const wrapper = scrollable ? scrollable.closest(".map-picker-wrapper") : event.currentTarget;
   if (!wrapper) return;
-  
+
   // Get click position relative to the visible viewport of the wrapper
   const wrapperRect = wrapper.getBoundingClientRect();
   const clickXInWrapper = event.clientX - wrapperRect.left + wrapper.scrollLeft;
-  const clickYInWrapper = event.clientY - wrapperRect.top  + wrapper.scrollTop;
-  
+  const clickYInWrapper = event.clientY - wrapperRect.top + wrapper.scrollTop;
+
   // Convert from scaled-pixel space to percentage of original 2048x2048 image
   const mapSize = 2048; // native image size in px
   const xPct = (clickXInWrapper / (mapSize * pickerZoom)) * 100;
   const yPct = (clickYInWrapper / (mapSize * pickerZoom)) * 100;
-  
+
   document.getElementById("p-coords-x").value = xPct.toFixed(2);
   document.getElementById("p-coords-y").value = yPct.toFixed(2);
-  
+
   // Place pin in the scrollable (pre-scaled) coordinate space
   const pin = document.getElementById("map-picker-pin");
   if (pin) {
     pin.style.left = xPct.toFixed(2) + "%";
-    pin.style.top  = yPct.toFixed(2) + "%";
+    pin.style.top = yPct.toFixed(2) + "%";
     pin.style.display = "block";
   }
 }
@@ -2852,12 +2925,12 @@ function saveSettings() {
   const clubName = document.getElementById("setting-club-name").value;
   const adminName = document.getElementById("setting-admin-name").value;
   const adminAvatar = document.getElementById("setting-admin-avatar").value;
-  
+
   if (clubName && adminName) {
     state.settings.clubName = clubName;
     state.settings.adminName = adminName;
     state.settings.adminAvatar = adminAvatar;
-    
+
     logActivity("Atualizou os parâmetros visuais e identidade do sindicato.", "System");
     saveState();
     applySettingsUI();
@@ -2872,10 +2945,10 @@ function applySettingsUI() {
   if (subNode && state.settings.clubName) {
     subNode.innerText = state.settings.clubName.replace("MAFIA - ", "");
   }
-  
+
   const adminMiniAvatar = document.getElementById("admin-mini-avatar");
   const adminMiniName = document.getElementById("admin-mini-name");
-  
+
   if (adminMiniAvatar && state.settings.adminAvatar) adminMiniAvatar.src = state.settings.adminAvatar;
   if (adminMiniName && state.settings.adminName) adminMiniName.innerText = state.settings.adminName;
 }
@@ -2893,10 +2966,10 @@ function resetDatabase() {
 // ==================== CALCULATOR ENGINE AND EXCEL FORMULAS ====================
 let calcExpression = "";
 
-window.pressCalcKey = function(key) {
+window.pressCalcKey = function (key) {
   const screen = document.getElementById("calc-screen");
   if (!screen) return;
-  
+
   if (key === "C") {
     calcExpression = "";
     screen.innerText = "0";
@@ -2930,12 +3003,12 @@ window.pressCalcKey = function(key) {
 document.addEventListener("keydown", (e) => {
   const activeModule = document.querySelector(".module-panel.active");
   if (!activeModule || activeModule.id !== "module-calculator") return;
-  
+
   if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") {
     return;
   }
-  
-  const validKeys = ["0","1","2","3","4","5","6","7","8","9","+","-","*","/",".","=","Enter","Backspace","Escape"];
+
+  const validKeys = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "*", "/", ".", "=", "Enter", "Backspace", "Escape"];
   if (validKeys.includes(e.key)) {
     e.preventDefault();
     if (e.key === "Enter") pressCalcKey("=");
@@ -2944,66 +3017,66 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-window.switchCalcTab = function(event, tabId) {
+window.switchCalcTab = function (event, tabId) {
   const panel = event.target.closest(".tab-container");
   if (!panel) return;
-  
+
   panel.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
   panel.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-  
+
   event.target.classList.add("active");
   const target = document.getElementById(tabId);
   if (target) target.classList.add("active");
 }
 
 // 1. Profit Split (Excel style sum & pct multiplier)
-window.calcProfitSplit = function() {
+window.calcProfitSplit = function () {
   const gross = parseFloat(document.getElementById("split-gross").value) || 0;
   const costs = parseFloat(document.getElementById("split-costs").value) || 0;
-  
+
   const net = Math.max(0, gross - costs);
   document.getElementById("result-split-net").innerText = "$" + net.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-  
+
   const pctBoss = parseFloat(document.getElementById("split-pct-boss").value) || 0;
   const pctUnderboss = parseFloat(document.getElementById("split-pct-underboss").value) || 0;
   const pctCapo = parseFloat(document.getElementById("split-pct-capo").value) || 0;
   const pctSoldier = parseFloat(document.getElementById("split-pct-soldier").value) || 0;
-  
+
   const valBoss = net * (pctBoss / 100);
   const valUnderboss = net * (pctUnderboss / 100);
   const valCapo = net * (pctCapo / 100);
   const valSoldier = net * (pctSoldier / 100);
-  
+
   document.getElementById("result-split-boss").innerText = "$" + valBoss.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   document.getElementById("result-split-underboss").innerText = "$" + valUnderboss.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   document.getElementById("result-split-capo").innerText = "$" + valCapo.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   document.getElementById("result-split-soldier").innerText = "$" + valSoldier.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-  
-  document.getElementById("excel-formula-split-text").innerText = 
+
+  document.getElementById("excel-formula-split-text").innerText =
     `=(SOMA(${gross}; -${costs})) * ${pctBoss}%  [Exemplo para o Boss]`;
 }
 
 // 2. Loans & Amortization (Excel style PMT)
-window.calcLoanPMT = function() {
+window.calcLoanPMT = function () {
   const principal = parseFloat(document.getElementById("loan-principal").value) || 0;
   const ratePerMonth = (parseFloat(document.getElementById("loan-rate").value) || 0) / 100;
   const months = parseInt(document.getElementById("loan-months").value) || 1;
-  
+
   let pmt = 0;
   if (ratePerMonth === 0) {
     pmt = principal / months;
   } else {
     pmt = (principal * ratePerMonth * Math.pow(1 + ratePerMonth, months)) / (Math.pow(1 + ratePerMonth, months) - 1);
   }
-  
+
   const totalPaid = pmt * months;
   const totalInterest = Math.max(0, totalPaid - principal);
-  
+
   document.getElementById("result-loan-pmt").innerText = "$" + pmt.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   document.getElementById("result-loan-total").innerText = "$" + totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   document.getElementById("result-loan-interest").innerText = "$" + totalInterest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  
-  document.getElementById("excel-formula-loan-text").innerText = 
+
+  document.getElementById("excel-formula-loan-text").innerText =
     `=PGTO(${ratePerMonth * 100}%; ${months}; -${principal})`;
 }
 
@@ -3018,7 +3091,7 @@ let contrabandData = [
 function renderForecastTable() {
   const tbody = document.getElementById("forecast-table-body");
   if (!tbody) return;
-  
+
   tbody.innerHTML = "";
   contrabandData.forEach((row, index) => {
     const tr = document.createElement("tr");
@@ -3036,29 +3109,29 @@ function renderForecastTable() {
     `;
     tbody.appendChild(tr);
   });
-  
+
   calcContrabandForecast();
 }
 
-window.updateForecastQty = function(index, value) {
+window.updateForecastQty = function (index, value) {
   contrabandData[index].quantity = parseInt(value) || 0;
   document.getElementById(`forecast-row-total-${index}`).innerText = "$" + (contrabandData[index].quantity * contrabandData[index].price).toLocaleString();
   calcContrabandForecast();
 }
 
-window.updateForecastPrice = function(index, value) {
+window.updateForecastPrice = function (index, value) {
   contrabandData[index].price = parseFloat(value) || 0;
   document.getElementById(`forecast-row-total-${index}`).innerText = "$" + (contrabandData[index].quantity * contrabandData[index].price).toLocaleString();
   calcContrabandForecast();
 }
 
-window.calcContrabandForecast = function() {
+window.calcContrabandForecast = function () {
   const total = contrabandData.reduce((acc, row) => acc + (row.quantity * row.price), 0);
   document.getElementById("result-forecast-total").innerText = "$" + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  
+
   const qArray = contrabandData.map(d => d.quantity).join(";");
   const pArray = contrabandData.map(d => d.price).join(";");
-  document.getElementById("excel-formula-forecast-text").innerText = 
+  document.getElementById("excel-formula-forecast-text").innerText =
     `=SOMARPRODUTO({${qArray}}; {${pArray}})`;
 }
 
@@ -3071,17 +3144,17 @@ function renderCalculator() {
 // ==================== FLOATING POCKET CALCULATOR ENGINE ====================
 let floatCalcExpression = "";
 
-window.toggleFloatingCalculator = function() {
+window.toggleFloatingCalculator = function () {
   const panel = document.getElementById("floating-calculator");
   if (panel) {
     panel.classList.toggle("active");
   }
 }
 
-window.pressFloatCalcKey = function(key) {
+window.pressFloatCalcKey = function (key) {
   const screen = document.getElementById("float-calc-screen");
   if (!screen) return;
-  
+
   if (key === "C") {
     floatCalcExpression = "";
     screen.innerText = "0";
@@ -3114,12 +3187,12 @@ window.pressFloatCalcKey = function(key) {
 document.addEventListener("keydown", (e) => {
   const panel = document.getElementById("floating-calculator");
   if (!panel || !panel.classList.contains("active")) return;
-  
+
   if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") {
     return;
   }
-  
-  const validKeys = ["0","1","2","3","4","5","6","7","8","9","+","-","*","/",".","=","Enter","Backspace","Escape"];
+
+  const validKeys = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "*", "/", ".", "=", "Enter", "Backspace", "Escape"];
   if (validKeys.includes(e.key)) {
     e.preventDefault();
     if (e.key === "Enter") pressFloatCalcKey("=");
@@ -3134,9 +3207,9 @@ let pickerZoom = 1.0;
 let isMapFullscreen = false;
 let editingActionId = null;
 
-window.zoomTacticalMap = function(amountOrScale) {
+window.zoomTacticalMap = function (amountOrScale) {
   const label = document.getElementById("tactical-zoom-label");
-  
+
   if (amountOrScale === 1) {
     tacticalZoom = Math.min(10.0, tacticalZoom + 0.15);
   } else if (amountOrScale === -1) {
@@ -3144,14 +3217,14 @@ window.zoomTacticalMap = function(amountOrScale) {
   } else {
     tacticalZoom = amountOrScale;
   }
-  
+
   applyMapScale("tactical-map-scrollable", tacticalZoom);
   if (label) label.innerText = Math.round(tacticalZoom * 100) + "%";
 }
 
-window.zoomMapPicker = function(amountOrScale) {
+window.zoomMapPicker = function (amountOrScale) {
   const label = document.getElementById("picker-zoom-label");
-  
+
   if (amountOrScale === 1) {
     pickerZoom = Math.min(10.0, pickerZoom + 0.15);
   } else if (amountOrScale === -1) {
@@ -3159,7 +3232,7 @@ window.zoomMapPicker = function(amountOrScale) {
   } else {
     pickerZoom = amountOrScale;
   }
-  
+
   applyMapScale("map-picker-scrollable", pickerZoom);
   if (label) label.innerText = Math.round(pickerZoom * 100) + "%";
 }
@@ -3171,7 +3244,7 @@ function applyMapScale(scrollableId, scale) {
   el.style.transform = "scale(" + scale + ")";
 }
 
-window.toggleTacticalMapFullscreen = function() {
+window.toggleTacticalMapFullscreen = function () {
   const container = document.getElementById("tactical-map-container");
   const icon = document.getElementById("fullscreen-map-icon");
   if (container && icon) {
@@ -3196,48 +3269,48 @@ function initMapsDraggableAndWheelZoom() {
 function makeMapInteractive(parentId, zoomFnName) {
   const parent = document.getElementById(parentId);
   if (!parent) return;
-  
+
   let isDown = false;
   let startX, startY, scrollLeft, scrollTop;
   let wheelRafPending = false;
   let wheelDeltaAccum = 0;
-  
+
   parent.style.cursor = "grab";
   // Enable smooth scrolling inside the container
   parent.style.overflow = "auto";
   parent.style.userSelect = "none";
   parent.style.webkitUserSelect = "none";
-  
+
   // ── Drag-to-pan ──────────────────────────────────────────
   parent.addEventListener("mousedown", (e) => {
     if (e.button !== 0) return;
     if (e.target.closest(".map-zoom-controls") || e.target.closest(".map-blip") || e.target.closest("#map-picker-pin")) return;
-    
+
     isDown = true;
     parent.style.cursor = "grabbing";
     startX = e.clientX;
     startY = e.clientY;
     scrollLeft = parent.scrollLeft;
-    scrollTop  = parent.scrollTop;
+    scrollTop = parent.scrollTop;
     e.preventDefault();
   }, { passive: false });
-  
+
   parent.addEventListener("mouseleave", () => { isDown = false; parent.style.cursor = "grab"; });
-  parent.addEventListener("mouseup",    () => { isDown = false; parent.style.cursor = "grab"; });
-  
+  parent.addEventListener("mouseup", () => { isDown = false; parent.style.cursor = "grab"; });
+
   parent.addEventListener("mousemove", (e) => {
     if (!isDown) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     parent.scrollLeft = scrollLeft - dx;
-    parent.scrollTop  = scrollTop  - dy;
+    parent.scrollTop = scrollTop - dy;
   });
-  
+
   // ── Wheel-to-zoom — throttled with rAF ───────────────────
   parent.addEventListener("wheel", (e) => {
     e.preventDefault();
     wheelDeltaAccum += e.deltaY;
-    
+
     if (!wheelRafPending) {
       wheelRafPending = true;
       requestAnimationFrame(() => {
@@ -3251,7 +3324,7 @@ function makeMapInteractive(parentId, zoomFnName) {
       });
     }
   }, { passive: false });
-  
+
   // ── Touch support (pinch-to-zoom + pan) ──────────────────
   let lastTouchDist = null;
   parent.addEventListener("touchstart", (e) => {
@@ -3265,10 +3338,10 @@ function makeMapInteractive(parentId, zoomFnName) {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       scrollLeft = parent.scrollLeft;
-      scrollTop  = parent.scrollTop;
+      scrollTop = parent.scrollTop;
     }
   }, { passive: true });
-  
+
   parent.addEventListener("touchmove", (e) => {
     if (e.touches.length === 2 && lastTouchDist !== null) {
       e.preventDefault();
@@ -3285,10 +3358,10 @@ function makeMapInteractive(parentId, zoomFnName) {
       const dx = e.touches[0].clientX - startX;
       const dy = e.touches[0].clientY - startY;
       parent.scrollLeft = scrollLeft - dx;
-      parent.scrollTop  = scrollTop  - dy;
+      parent.scrollTop = scrollTop - dy;
     }
   }, { passive: false });
-  
+
   parent.addEventListener("touchend", () => { isDown = false; lastTouchDist = null; });
 }
 
@@ -3304,7 +3377,7 @@ const defaultMaterialCosts = {
   "Kit Médico de Emergência": 200
 };
 
-window.autoFillMaterialCost = function(input) {
+window.autoFillMaterialCost = function (input) {
   const row = input.closest(".material-row");
   if (!row) return;
   const name = input.value.trim();
@@ -3315,10 +3388,10 @@ window.autoFillMaterialCost = function(input) {
   calcActionModalProfit();
 }
 
-window.addActionMaterialRow = function(name = "", qty = 1, unitCost = 0) {
+window.addActionMaterialRow = function (name = "", qty = 1, unitCost = 0) {
   const container = document.getElementById("act-materials-rows");
   if (!container) return;
-  
+
   const row = document.createElement("div");
   row.className = "material-row";
   row.style.display = "grid";
@@ -3326,7 +3399,7 @@ window.addActionMaterialRow = function(name = "", qty = 1, unitCost = 0) {
   row.style.gap = "8px";
   row.style.alignItems = "center";
   row.style.marginBottom = "4px";
-  
+
   row.innerHTML = `
     <input type="text" class="form-input material-name" required placeholder="Item / Material" list="materials-list-autocomplete" value="${name}" onchange="autoFillMaterialCost(this)" style="padding: 6px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.3);">
     <input type="number" class="form-input material-qty" required min="1" placeholder="Qtd" value="${qty}" oninput="calcActionModalProfit()" style="padding: 6px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.3);">
@@ -3337,9 +3410,9 @@ window.addActionMaterialRow = function(name = "", qty = 1, unitCost = 0) {
   calcActionModalProfit();
 }
 
-window.calcActionModalProfit = function() {
+window.calcActionModalProfit = function () {
   const rev = parseFloat(document.getElementById("act-revenue").value) || 0;
-  
+
   let totalCost = 0;
   const rows = document.querySelectorAll("#act-materials-rows .material-row");
   rows.forEach(row => {
@@ -3347,12 +3420,12 @@ window.calcActionModalProfit = function() {
     const unit = parseFloat(row.querySelector(".material-unit-cost").value) || 0;
     totalCost += qty * unit;
   });
-  
+
   const profit = rev - totalCost;
-  
+
   const costEl = document.getElementById("act-cost-display");
   const profitEl = document.getElementById("act-profit-display");
-  
+
   if (costEl) costEl.value = "$" + totalCost.toLocaleString('pt-BR');
   if (profitEl) {
     profitEl.value = "$" + profit.toLocaleString('pt-BR');
@@ -3364,57 +3437,73 @@ window.calcActionModalProfit = function() {
   }
 }
 
-window.renderActions = function() {
+window.renderActions = function () {
   const tableBody = document.getElementById("actions-table-body");
   if (!tableBody) return;
-  
+
   if (!state.actions) state.actions = [];
-  
-  // Update totals
+
+  const filterEl = document.getElementById("action-filter-status");
+  const filterStatus = filterEl ? filterEl.value : "Active";
+
+  // Update totals (only for active actions)
   let totalRevenue = 0;
   let totalCost = 0;
   let totalProfit = 0;
-  
+
   state.actions.forEach(act => {
-    totalRevenue += act.revenue;
-    totalCost += act.cost;
-    totalProfit += act.profit;
+    if (act.status !== "Archived") {
+      totalRevenue += act.revenue;
+      totalCost += act.cost;
+      totalProfit += act.profit;
+    }
   });
-  
+
   const profitEl = document.getElementById("actions-total-profit");
   const revEl = document.getElementById("actions-total-revenue");
   const countEl = document.getElementById("actions-total-count");
-  
+
   if (profitEl) {
     profitEl.innerText = "$" + totalProfit.toLocaleString('pt-BR');
     profitEl.style.color = totalProfit >= 0 ? "#4CAF50" : "#F44336";
   }
   if (revEl) revEl.innerText = "$" + totalRevenue.toLocaleString('pt-BR');
-  if (countEl) countEl.innerText = state.actions.length;
   
+  const activeCount = state.actions.filter(act => act.status !== "Archived").length;
+  if (countEl) countEl.innerText = activeCount;
+
+  // Filter actions based on status
+  const filteredActions = state.actions.filter(act => {
+    if (filterStatus === "Archived") {
+      return act.status === "Archived";
+    } else {
+      return act.status !== "Archived";
+    }
+  });
+
   // Render table rows
   tableBody.innerHTML = "";
-  if (state.actions.length === 0) {
+  if (filteredActions.length === 0) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
           <i class="fas fa-tasks" style="font-size: 2rem; margin-bottom: 10px; color: var(--border-color);"></i>
-          <p>Nenhuma ação registrada no histórico.</p>
+          <p>${filterStatus === 'Archived' ? 'Nenhuma ação arquivada.' : 'Nenhuma ação registrada no histórico.'}</p>
         </td>
       </tr>
     `;
     return;
   }
-  
+
   // Sort actions by date descending
-  const sortedActions = [...state.actions].sort((a, b) => new Date(b.date) - new Date(a.date));
-  
+  const sortedActions = [...filteredActions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
   sortedActions.forEach(act => {
     const row = document.createElement("tr");
-    
+
     // Formatar data
     const dateFormatted = act.date ? act.date.split("-").reverse().join("/") : "N/A";
-    
+
     // List materials details
     let materialsText = "";
     if (act.materials && act.materials.length > 0) {
@@ -3422,7 +3511,37 @@ window.renderActions = function() {
     } else {
       materialsText = "Nenhum material";
     }
-    
+
+    let actionButtons = "";
+    if (filterStatus === "Archived") {
+      actionButtons = `
+        <button class="btn btn-secondary btn-sm" onclick="viewAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9; cursor: pointer;" title="Visualizar Detalhes">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="restoreAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #00897b; border-color: #00796b; color: #fff; cursor: pointer;" title="Restaurar Ação">
+          <i class="fas fa-undo"></i>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="deleteAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff; cursor: pointer;" title="Excluir Registro Definitivamente">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      `;
+    } else {
+      actionButtons = `
+        <button class="btn btn-secondary btn-sm" onclick="viewAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9; cursor: pointer;" title="Visualizar Detalhes">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="archiveAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #e65100; border-color: #ef6c00; color: #fff; cursor: pointer;" title="Arquivar Ação">
+          <i class="fas fa-archive"></i>
+        </button>
+      `;
+    }
+
     row.innerHTML = `
       <td>${dateFormatted}</td>
       <td><strong>${act.type}</strong></td>
@@ -3439,15 +3558,7 @@ window.renderActions = function() {
       </td>
       <td>
         <div style="display: flex; gap: 4px;">
-          <button class="btn btn-secondary btn-sm" onclick="viewAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9; cursor: pointer;" title="Visualizar Detalhes">
-            <i class="fas fa-eye"></i>
-          </button>
-          <button class="btn btn-secondary btn-sm" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="btn btn-secondary btn-sm" onclick="deleteAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff; cursor: pointer;" title="Excluir Registro">
-            <i class="fas fa-trash-alt"></i>
-          </button>
+          ${actionButtons}
         </div>
       </td>
     `;
@@ -3455,13 +3566,13 @@ window.renderActions = function() {
   });
 }
 
-window.deleteAction = function(id) {
-  if (confirm("Tem certeza que deseja excluir esta ação permanentemente do histórico?")) {
+window.deleteAction = function (id) {
+  if (confirm("Tem certeza que deseja excluir esta ação permanentemente do histórico? Isso não pode ser desfeito.")) {
     const actionIndex = state.actions.findIndex(act => act.id === id);
     if (actionIndex !== -1) {
       const act = state.actions[actionIndex];
       state.actions.splice(actionIndex, 1);
-      logActivity("Excluiu ação de campo: " + act.type + " de " + act.date, "Operação");
+      logActivity("Excluiu ação de campo definitivamente: " + act.type + " de " + act.date, "Operação");
       saveState();
       renderActions();
       showToast("Ação excluída com sucesso", "success");
@@ -3469,7 +3580,7 @@ window.deleteAction = function(id) {
   }
 }
 
-window.viewAction = function(id) {
+window.viewAction = function (id) {
   const act = state.actions.find(a => a.id === id);
   if (!act) return;
 
@@ -3494,36 +3605,76 @@ window.viewAction = function(id) {
     `<span class="badge" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); font-size: 0.75rem; padding: 4px 10px; border-radius: 20px;">${p}</span>`
   ).join("");
 
-  document.getElementById("view-act-id").innerText       = act.id;
-  document.getElementById("view-act-date").innerText     = dateFormatted;
-  document.getElementById("view-act-type").innerText     = act.type;
-  document.getElementById("view-act-revenue").innerText  = "$" + act.revenue.toLocaleString('pt-BR');
-  document.getElementById("view-act-cost").innerText     = "-$" + act.cost.toLocaleString('pt-BR');
-  document.getElementById("view-act-profit").innerText   = "$" + act.profit.toLocaleString('pt-BR');
+  document.getElementById("view-act-id").innerText = act.id;
+  document.getElementById("view-act-date").innerText = dateFormatted;
+  document.getElementById("view-act-type").innerText = act.type;
+  document.getElementById("view-act-revenue").innerText = "$" + act.revenue.toLocaleString('pt-BR');
+  document.getElementById("view-act-cost").innerText = "-$" + act.cost.toLocaleString('pt-BR');
+  document.getElementById("view-act-profit").innerText = "$" + act.profit.toLocaleString('pt-BR');
   document.getElementById("view-act-profit").style.color = profitColor;
-  document.getElementById("view-act-materials").innerHTML    = materialsHTML;
+  document.getElementById("view-act-materials").innerHTML = materialsHTML;
   document.getElementById("view-act-participants").innerHTML = participantsHTML;
+
+  // Render Action Media Section
+  const mediaSection = document.getElementById("view-act-media-section");
+  const mediaGrid = document.getElementById("view-act-media-grid");
+  if (mediaSection && mediaGrid) {
+    mediaGrid.innerHTML = "";
+    if (act.media && act.media.length > 0) {
+      mediaSection.style.display = "block";
+      act.media.forEach(m => {
+        const item = document.createElement("div");
+        if (m.type === "image") {
+          item.innerHTML = `
+            <div style="position: relative; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2);">
+              <img src="${m.url}" style="width: 100%; display: block; cursor: pointer; transition: transform 0.2s;" onclick="window.openMediaLightbox('${m.url}', 'image')" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+              <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); padding: 4px; font-size: 0.6rem; color: var(--text-muted); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.name || 'Imagem'}</div>
+            </div>
+          `;
+        } else {
+          item.innerHTML = `
+            <div style="border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <i class="fas fa-video" style="color: #90caf9;"></i> ${m.name}
+              </div>
+              <div style="cursor: pointer; position: relative;" onclick="window.openMediaLightbox('${m.url}', 'video')">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #fff; z-index: 10;"><i class="fas fa-play-circle"></i></div>
+                ${window.getVideoEmbedHTML(m.url)}
+              </div>
+            </div>
+          `;
+        }
+        mediaGrid.appendChild(item);
+      });
+    } else {
+      mediaSection.style.display = "none";
+    }
+  }
 
   openModal("modal-view-action");
 }
 
-window.editAction = function(id) {
+window.editAction = function (id) {
   const act = state.actions.find(a => a.id === id);
   if (!act) return;
-  
+
   editingActionId = id;
   
+  // Load Action Media
+  actionMediaList = act.media ? [...act.media] : [];
+  window.renderActionMediaList();
+
   // Set modal texts
   const title = document.getElementById("modal-action-title");
   const submitBtn = document.getElementById("btn-submit-action");
   if (title) title.innerHTML = `<i class="fas fa-edit"></i> Editar Ação Realizada`;
   if (submitBtn) submitBtn.innerText = "Salvar Alterações";
-  
+
   // Fill inputs
   document.getElementById("act-type").value = act.type;
   document.getElementById("act-revenue").value = act.revenue;
   document.getElementById("act-date").value = act.date;
-  
+
   // Load materials rows
   const rowsContainer = document.getElementById("act-materials-rows");
   if (rowsContainer) {
@@ -3536,15 +3687,15 @@ window.editAction = function(id) {
       addActionMaterialRow("", 1, 0);
     }
   }
-  
+
   // Load participants checkboxes (display active members + checked current participants)
   const container = document.getElementById("act-participants-checkboxes");
   if (container) {
     container.innerHTML = "";
-    
+
     const activeNames = state.members.filter(m => m.status === "Active").map(m => m.fullName);
     const allNames = Array.from(new Set([...activeNames, ...act.participants]));
-    
+
     if (allNames.length === 0) {
       container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.75rem; margin: 0;'>Nenhum membro participante disponível.</p>";
     } else {
@@ -3562,10 +3713,10 @@ window.editAction = function(id) {
       });
     }
   }
-  
+
   // Update profit numbers
   calcActionModalProfit();
-  
+
   openModal("modal-new-action");
 }
 
@@ -3575,27 +3726,30 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnOpenAction) {
     btnOpenAction.addEventListener("click", () => {
       editingActionId = null;
-      
+
+      actionMediaList = [];
+      window.renderActionMediaList();
+
       // Reset modal texts
       const title = document.getElementById("modal-action-title");
       const submitBtn = document.getElementById("btn-submit-action");
       if (title) title.innerHTML = `<i class="fas fa-tasks"></i> Registrar Ação Realizada`;
       if (submitBtn) submitBtn.innerText = "Registrar Ação";
-      
+
       // Limpar campos
       document.getElementById("form-new-action").reset();
       document.getElementById("act-date").value = new Date().toISOString().slice(0, 10);
       document.getElementById("act-profit-display").value = "$0";
       document.getElementById("act-profit-display").style.color = "#4CAF50";
       document.getElementById("act-cost-display").value = "$0";
-      
+
       // Limpar e preencher linhas de materiais com uma linha inicial padrão
       const rowsContainer = document.getElementById("act-materials-rows");
       if (rowsContainer) {
         rowsContainer.innerHTML = "";
         addActionMaterialRow("", 1, 0);
       }
-      
+
       // Carregar lista de participantes (apenas membros ativos)
       const container = document.getElementById("act-participants-checkboxes");
       if (container) {
@@ -3617,8 +3771,517 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         }
       }
-      
+
       openModal("modal-new-action");
     });
   }
+
+  // Bind actions status filter change
+  const actionFilter = document.getElementById("action-filter-status");
+  if (actionFilter) {
+    actionFilter.addEventListener("change", () => {
+      window.renderActions();
+    });
+  }
 });
+
+// ==================== GERENCIAMENTO DE MÍDIAS E ARQUIVAMENTO DE AÇÕES ====================
+let actionMediaList = [];
+
+window.getVideoEmbedHTML = function (url) {
+  // YouTube RegExp
+  const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const ytMatch = url.match(ytRegExp);
+  if (ytMatch && ytMatch[2].length === 11) {
+    const videoId = ytMatch[2];
+    return `<iframe width="100%" height="220" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 8px; border: 1px solid var(--border-color); display: block;"></iframe>`;
+  }
+
+  // Twitch Video RegExp
+  const twitchRegExp = /twitch\.tv\/videos\/(\d+)/;
+  const twitchMatch = url.match(twitchRegExp);
+  if (twitchMatch) {
+    const videoId = twitchMatch[1];
+    return `<iframe src="https://player.twitch.tv/?video=${videoId}&parent=${window.location.hostname}&autoplay=false" frameborder="0" allowfullscreen="true" scrolling="no" height="220" width="100%" style="border-radius: 8px; border: 1px solid var(--border-color); display: block;"></iframe>`;
+  }
+
+  // Generic HTML5 Video Player
+  return `<video src="${url}" controls style="width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid var(--border-color); background: #000; display: block;"></video>`;
+};
+
+window.openMediaLightbox = function (url, type) {
+  const lightbox = document.getElementById("modal-media-lightbox");
+  const img = document.getElementById("lightbox-img");
+  const videoContainer = document.getElementById("lightbox-video-container");
+  
+  if (!lightbox || !img || !videoContainer) return;
+  
+  if (type === 'image') {
+    img.src = url;
+    img.style.display = "block";
+    videoContainer.style.display = "none";
+    videoContainer.innerHTML = "";
+  } else if (type === 'video') {
+    img.style.display = "none";
+    img.src = "";
+    videoContainer.style.display = "block";
+    videoContainer.innerHTML = window.getVideoEmbedHTML(url);
+  }
+  
+  openModal("modal-media-lightbox");
+};
+
+window.addActionMediaLink = function () {
+  const urlEl = document.getElementById("act-media-url");
+  if (!urlEl) return;
+  const url = urlEl.value.trim();
+  if (!url) return;
+  
+  let type = "image";
+  if (url.includes("youtube.com") || url.includes("youtu.be") || url.includes("twitch.tv") || url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".ogg")) {
+    type = "video";
+  }
+  
+  let friendlyName = url;
+  if (url.length > 25) {
+    friendlyName = url.substring(0, 12) + "..." + url.substring(url.length - 10);
+  }
+  
+  actionMediaList.push({ type, url, name: friendlyName });
+  urlEl.value = "";
+  window.renderActionMediaList();
+};
+
+window.uploadActionMediaFile = function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 2.5 * 1024 * 1024) {
+    showToast("Arquivo muito grande. O limite máximo recomendado é 2.5MB.", "error");
+    if (file.size > 4 * 1024 * 1024) {
+      showToast("Bloqueado: Arquivos maiores que 4MB excedem a cota.", "error");
+      return;
+    }
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const type = file.type.startsWith("image/") ? "image" : "video";
+    actionMediaList.push({ type, url: e.target.result, name: file.name });
+    window.renderActionMediaList();
+    showToast("Arquivo anexado com sucesso", "success");
+  };
+  reader.readAsDataURL(file);
+  event.target.value = "";
+};
+
+window.renderActionMediaList = function () {
+  const container = document.getElementById("act-media-list");
+  if (!container) return;
+  
+  container.innerHTML = "";
+  if (actionMediaList.length === 0) {
+    container.innerHTML = `<div style="grid-column: span 4; text-align: center; color: var(--text-muted); font-size: 0.7rem; padding: 10px 0;">Nenhuma mídia adicionada</div>`;
+    checkMediaStorageUsage();
+    return;
+  }
+  
+  actionMediaList.forEach((m, index) => {
+    const card = document.createElement("div");
+    card.style.position = "relative";
+    card.style.borderRadius = "4px";
+    card.style.overflow = "hidden";
+    card.style.border = "1px solid var(--border-color)";
+    card.style.background = "rgba(0,0,0,0.3)";
+    card.style.aspectRatio = "1/1";
+    card.style.display = "flex";
+    card.style.alignItems = "center";
+    card.style.justifyContent = "center";
+    
+    if (m.type === "image") {
+      card.innerHTML = `
+        <img src="${m.url}" style="width: 100%; height: 100%; object-fit: cover;">
+        <button type="button" onclick="window.removeActionMedia(${index})" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #ff5252; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i></button>
+      `;
+    } else {
+      card.innerHTML = `
+        <div style="font-size: 1.2rem; color: #90caf9;"><i class="fas fa-video"></i></div>
+        <span style="position: absolute; bottom: 2px; left: 2px; right: 2px; font-size: 0.5rem; color: var(--text-muted); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.name}</span>
+        <button type="button" onclick="window.removeActionMedia(${index})" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #ff5252; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i></button>
+      `;
+    }
+    container.appendChild(card);
+  });
+  
+  checkMediaStorageUsage();
+};
+
+window.removeActionMedia = function (index) {
+  actionMediaList.splice(index, 1);
+  window.renderActionMediaList();
+};
+
+function checkMediaStorageUsage() {
+  let totalLength = 0;
+  actionMediaList.forEach(m => {
+    if (m.url.startsWith("data:")) {
+      totalLength += m.url.length;
+    }
+  });
+  
+  const warningEl = document.getElementById("act-media-storage-warning");
+  if (warningEl) {
+    if (totalLength > 1 * 1024 * 1024) {
+      warningEl.style.display = "block";
+      warningEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Atenção: Mídias locais ocupam ${(totalLength / (1024 * 1024)).toFixed(1)}MB de dados (limite 5MB). Dê preferência a links.`;
+    } else {
+      warningEl.style.display = "none";
+    }
+  }
+}
+
+window.archiveAction = function (id) {
+  const act = state.actions.find(a => a.id === id);
+  if (!act) return;
+  act.status = "Archived";
+  logActivity(`Arquivou ação de campo: ${act.type} (${act.date})`, "Operação");
+  saveState();
+  window.renderActions();
+  showToast("Ação arquivada com sucesso", "success");
+};
+
+window.restoreAction = function (id) {
+  const act = state.actions.find(a => a.id === id);
+  if (!act) return;
+  act.status = "Active";
+  logActivity(`Restaurou ação de campo: ${act.type} (${act.date})`, "Operação");
+  saveState();
+  window.renderActions();
+  showToast("Ação restaurada com sucesso", "success");
+};
+
+// Bind operations status filter change
+document.addEventListener("DOMContentLoaded", () => {
+  const operationFilter = document.getElementById("operation-filter-status");
+  if (operationFilter) {
+    operationFilter.addEventListener("change", () => {
+      window.renderOperations();
+    });
+  }
+
+  // Bind Iniciar Operação button specifically
+  const btnNewOp = document.getElementById("btn-open-new-operation");
+  if (btnNewOp) {
+    btnNewOp.addEventListener("click", () => {
+      editingOperationId = null;
+      opMediaList = [];
+      window.renderOpMediaList();
+      
+      // Reset form
+      const form = document.getElementById("form-new-operation");
+      if (form) form.reset();
+      
+      // Reset photo preview
+      const preview = document.getElementById("o-photo-preview");
+      if (preview) {
+        preview.src = "";
+        preview.style.display = "none";
+      }
+      const box = document.getElementById("o-photo-upload-box");
+      if (box) {
+        const icon = box.querySelector(".photo-upload-icon");
+        const text = box.querySelector(".photo-upload-text");
+        if (icon) icon.style.display = "block";
+        if (text) text.style.display = "block";
+      }
+      
+      // Clear temp photo state
+      tempUploadedImage["new-operation"] = null;
+
+      // Reset modal text
+      const modalTitle = document.querySelector("#modal-new-operation .modal-title");
+      if (modalTitle) modalTitle.innerHTML = `<i class="fas fa-crosshairs"></i> Planejar Operação Tática`;
+      const submitBtn = document.querySelector("#form-new-operation button[type='submit']");
+      if (submitBtn) submitBtn.innerText = "Lançar Missão";
+
+      openModal("modal-new-operation");
+    });
+  }
+});
+
+// ==================== OPERAÇÕES TÁTICAS - EXIBIÇÃO, EDIÇÃO E MÍDIAS ====================
+let editingOperationId = null;
+let opMediaList = [];
+
+window.addOpMediaLink = function () {
+  const urlEl = document.getElementById("op-media-url");
+  if (!urlEl) return;
+  const url = urlEl.value.trim();
+  if (!url) return;
+  
+  let type = "image";
+  if (url.includes("youtube.com") || url.includes("youtu.be") || url.includes("twitch.tv") || url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".ogg")) {
+    type = "video";
+  }
+  
+  let friendlyName = url;
+  if (url.length > 25) {
+    friendlyName = url.substring(0, 12) + "..." + url.substring(url.length - 10);
+  }
+  
+  opMediaList.push({ type, url, name: friendlyName });
+  urlEl.value = "";
+  window.renderOpMediaList();
+};
+
+window.uploadOpMediaFile = function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 2.5 * 1024 * 1024) {
+    showToast("Arquivo muito grande. O limite máximo recomendado é 2.5MB.", "error");
+    if (file.size > 4 * 1024 * 1024) {
+      showToast("Bloqueado: Arquivos maiores que 4MB excedem a cota.", "error");
+      return;
+    }
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const type = file.type.startsWith("image/") ? "image" : "video";
+    opMediaList.push({ type, url: e.target.result, name: file.name });
+    window.renderOpMediaList();
+    showToast("Arquivo anexado com sucesso", "success");
+  };
+  reader.readAsDataURL(file);
+  event.target.value = "";
+};
+
+window.renderOpMediaList = function () {
+  const container = document.getElementById("op-media-list");
+  if (!container) return;
+  
+  container.innerHTML = "";
+  if (opMediaList.length === 0) {
+    container.innerHTML = `<div style="grid-column: span 4; text-align: center; color: var(--text-muted); font-size: 0.7rem; padding: 10px 0;">Nenhuma mídia adicionada</div>`;
+    checkOpMediaStorageUsage();
+    return;
+  }
+  
+  opMediaList.forEach((m, index) => {
+    const card = document.createElement("div");
+    card.style.position = "relative";
+    card.style.borderRadius = "4px";
+    card.style.overflow = "hidden";
+    card.style.border = "1px solid var(--border-color)";
+    card.style.background = "rgba(0,0,0,0.3)";
+    card.style.aspectRatio = "1/1";
+    card.style.display = "flex";
+    card.style.alignItems = "center";
+    card.style.justifyContent = "center";
+    
+    if (m.type === "image") {
+      card.innerHTML = `
+        <img src="${m.url}" style="width: 100%; height: 100%; object-fit: cover;">
+        <button type="button" onclick="window.removeOpMedia(${index})" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #ff5252; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i></button>
+      `;
+    } else {
+      card.innerHTML = `
+        <div style="font-size: 1.2rem; color: #90caf9;"><i class="fas fa-video"></i></div>
+        <span style="position: absolute; bottom: 2px; left: 2px; right: 2px; font-size: 0.5rem; color: var(--text-muted); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.name}</span>
+        <button type="button" onclick="window.removeOpMedia(${index})" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #ff5252; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i></button>
+      `;
+    }
+    container.appendChild(card);
+  });
+  
+  checkOpMediaStorageUsage();
+};
+
+window.removeOpMedia = function (index) {
+  opMediaList.splice(index, 1);
+  window.renderOpMediaList();
+};
+
+function checkOpMediaStorageUsage() {
+  let totalLength = 0;
+  opMediaList.forEach(m => {
+    if (m.url.startsWith("data:")) {
+      totalLength += m.url.length;
+    }
+  });
+  
+  const warningEl = document.getElementById("op-media-storage-warning");
+  if (warningEl) {
+    if (totalLength > 1 * 1024 * 1024) {
+      warningEl.style.display = "block";
+      warningEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Atenção: Mídias locais ocupam ${(totalLength / (1024 * 1024)).toFixed(1)}MB de dados (limite 5MB). Dê preferência a links.`;
+    } else {
+      warningEl.style.display = "none";
+    }
+  }
+}
+
+window.viewOperation = function (id) {
+  const op = state.operations.find(o => o.id === id);
+  if (!op) return;
+
+  const threatLabel = threatTranslations[op.threatLevel] || op.threatLevel;
+  const statusLabel = op.status === 'Active' ? 'Ativa' : op.status === 'Completed' ? 'Concluída' : op.status === 'Planning' ? 'Planejamento' : op.status === 'Cancelled' ? 'Cancelada' : op.status;
+
+  // Set text
+  document.getElementById("view-op-id").innerText = op.id;
+  
+  const tb = document.getElementById("view-op-threat-badge");
+  if (tb) {
+    tb.innerText = threatLabel;
+    tb.className = `threat-badge threat-${op.threatLevel === 'Baixo' ? 'low' : op.threatLevel === 'Médio' ? 'medium' : op.threatLevel === 'Alto' ? 'high' : 'critical'}`;
+  }
+
+  document.getElementById("view-op-title").innerText = op.title;
+  document.getElementById("view-op-target-name").innerText = op.targetName;
+  document.getElementById("view-op-target-alias").innerText = op.targetAlias ? `"${op.targetAlias}" | Idade: ${op.targetAge}` : `Sem vulgo | Idade: ${op.targetAge}`;
+  document.getElementById("view-op-target-phone").innerText = op.targetPhone ? `Contato: ${op.targetPhone}` : "Sem contato cadastrado";
+  document.getElementById("view-op-target-location").innerText = op.targetLocation || "Desconhecido";
+  
+  const statusEl = document.getElementById("view-op-status");
+  if (statusEl) {
+    statusEl.innerText = statusLabel;
+    statusEl.className = op.status === 'Active' ? 'badge-active' : op.status === 'Completed' ? 'badge-active' : op.status === 'Planning' ? 'badge-pending' : 'badge-inactive';
+    statusEl.style.display = "inline-block";
+    statusEl.style.padding = "2px 8px";
+    statusEl.style.borderRadius = "4px";
+    statusEl.style.color = "#fff";
+    statusEl.style.background = op.status === 'Active' || op.status === 'Completed' ? '#4CAF50' : op.status === 'Planning' ? '#ff9800' : '#F44336';
+  }
+
+  document.getElementById("view-op-reason").innerText = op.reason;
+  document.getElementById("view-op-members").innerText = op.assignedTeam && op.assignedTeam.length > 0 ? op.assignedTeam.join(", ") : "Nenhum membro designado.";
+  document.getElementById("view-op-vehicles").innerText = op.assignedVehicles && op.assignedVehicles.length > 0 ? op.assignedVehicles.join(", ") : "Nenhum veículo designado.";
+  document.getElementById("view-op-equipment").innerText = op.assignedEquipment && op.assignedEquipment.length > 0 ? op.assignedEquipment.join(", ") : "Nenhum equipamento designado.";
+
+  const targetPhoto = document.getElementById("view-op-target-photo");
+  if (targetPhoto) {
+    targetPhoto.src = op.targetPhoto || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=100";
+  }
+
+  // Timeline
+  const timelineEl = document.getElementById("view-op-timeline");
+  if (timelineEl) {
+    timelineEl.innerHTML = op.timeline.map(t => `<div style="margin-bottom: 4px;"><strong>${t.time}</strong> - ${t.text}</div>`).join("");
+  }
+
+  // Render Operation Media Section
+  const mediaSection = document.getElementById("view-op-media-section");
+  const mediaGrid = document.getElementById("view-op-media-grid");
+  if (mediaSection && mediaGrid) {
+    mediaGrid.innerHTML = "";
+    if (op.media && op.media.length > 0) {
+      mediaSection.style.display = "block";
+      op.media.forEach(m => {
+        const item = document.createElement("div");
+        if (m.type === "image") {
+          item.innerHTML = `
+            <div style="position: relative; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2);">
+              <img src="${m.url}" style="width: 100%; display: block; cursor: pointer; transition: transform 0.2s;" onclick="window.openMediaLightbox('${m.url}', 'image')" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+              <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); padding: 4px; font-size: 0.6rem; color: var(--text-muted); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.name || 'Imagem'}</div>
+            </div>
+          `;
+        } else {
+          item.innerHTML = `
+            <div style="border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <i class="fas fa-video" style="color: #90caf9;"></i> ${m.name}
+              </div>
+              <div style="cursor: pointer; position: relative;" onclick="window.openMediaLightbox('${m.url}', 'video')">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #fff; z-index: 10;"><i class="fas fa-play-circle"></i></div>
+                ${window.getVideoEmbedHTML(m.url)}
+              </div>
+            </div>
+          `;
+        }
+        mediaGrid.appendChild(item);
+      });
+    } else {
+      mediaSection.style.display = "none";
+    }
+  }
+
+  openModal("modal-view-operation");
+};
+
+window.editOperation = function (id) {
+  const op = state.operations.find(o => o.id === id);
+  if (!op) return;
+
+  editingOperationId = id;
+  
+  // Load Media
+  opMediaList = op.media ? [...op.media] : [];
+  window.renderOpMediaList();
+
+  // Set modal texts
+  const modalTitle = document.querySelector("#modal-new-operation .modal-title");
+  if (modalTitle) modalTitle.innerHTML = `<i class="fas fa-edit"></i> Editar Operação Tática`;
+  const submitBtn = document.querySelector("#form-new-operation button[type='submit']");
+  if (submitBtn) submitBtn.innerText = "Salvar Alterações";
+
+  // Fill inputs
+  document.getElementById("o-target-name").value = op.targetName;
+  document.getElementById("o-target-alias").value = op.targetAlias || "";
+  document.getElementById("o-target-phone").value = op.targetPhone || "";
+  document.getElementById("o-target-age").value = op.targetAge;
+  document.getElementById("o-target-location").value = op.targetLocation || "";
+  document.getElementById("o-title").value = op.title;
+  document.getElementById("o-threat-level").value = op.threatLevel;
+  document.getElementById("o-reason").value = op.reason;
+  document.getElementById("o-members").value = op.assignedTeam ? op.assignedTeam.join(", ") : "";
+  document.getElementById("o-vehicles").value = op.assignedVehicles ? op.assignedVehicles.join(", ") : "";
+  document.getElementById("o-equipment").value = op.assignedEquipment ? op.assignedEquipment.join(", ") : "";
+
+  // Target photo preview
+  const preview = document.getElementById("o-photo-preview");
+  if (preview) {
+    preview.src = op.targetPhoto || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=100";
+    preview.style.display = "block";
+  }
+  const box = document.getElementById("o-photo-upload-box");
+  if (box) {
+    const icon = box.querySelector(".photo-upload-icon");
+    const text = box.querySelector(".photo-upload-text");
+    if (icon) icon.style.display = "none";
+    if (text) text.style.display = "none";
+  }
+
+  // Reset temp photo upload state
+  tempUploadedImage["new-operation"] = op.targetPhoto;
+
+  openModal("modal-new-operation");
+};
+
+window.restoreOperation = function (id) {
+  const op = state.operations.find(o => o.id === id);
+  if (!op) return;
+  op.status = "Active";
+  const now = new Date();
+  const timeStr = now.toISOString().slice(0, 10) + " " + now.toTimeString().slice(0, 5);
+  op.timeline.unshift({ time: timeStr, text: "Operação restaurada e reativada." });
+  logActivity(`Restaurou a Operação: ${op.title}`, "Operação");
+  saveState();
+  renderOperations();
+  showToast(`Operação ${op.title} restaurada!`, "success");
+};
+
+window.deleteOperation = function (id) {
+  if (confirm("Tem certeza que deseja excluir esta operação permanentemente do histórico? Isso não pode ser desfeito.")) {
+    const opIndex = state.operations.findIndex(o => o.id === id);
+    if (opIndex !== -1) {
+      const op = state.operations[opIndex];
+      state.operations.splice(opIndex, 1);
+      logActivity(`Excluiu permanentemente a Operação: ${op.title}`, "Operação");
+      saveState();
+      renderOperations();
+      showToast("Operação excluída com sucesso", "success");
+    }
+  }
+};
