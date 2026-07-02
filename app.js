@@ -687,7 +687,18 @@ function initModals() {
   triggers.forEach(({ btnId, modalId }) => {
     const btn = document.getElementById(btnId);
     if (btn) {
-      btn.addEventListener("click", () => openModal(modalId));
+      btn.addEventListener("click", () => {
+        openModal(modalId);
+        // Resetar zoom do mapa picker ao abrir modal de propriedade
+        if (modalId === "modal-new-property") {
+          pickerZoom = 1.0;
+          applyMapScale("map-picker-scrollable", 1.0);
+          const lbl = document.getElementById("picker-zoom-label");
+          if (lbl) lbl.innerText = "100%";
+          const wrapper = document.querySelector(".map-picker-wrapper");
+          if (wrapper) { wrapper.scrollLeft = 0; wrapper.scrollTop = 0; }
+        }
+      });
     }
   });
 
@@ -2796,18 +2807,29 @@ function initFormSubmissions() {
 }
 
 window.pickPropertyCoords = function(event) {
-  const wrapper = event.currentTarget;
-  const rect = wrapper.getBoundingClientRect();
-  const x = ((event.clientX - rect.left) / rect.width) * 100;
-  const y = ((event.clientY - rect.top) / rect.height) * 100;
+  // The image is scaled via CSS transform; we must account for pickerZoom and scroll offset.
+  const scrollable = document.getElementById("map-picker-scrollable");
+  const wrapper = scrollable ? scrollable.closest(".map-picker-wrapper") : event.currentTarget;
+  if (!wrapper) return;
   
-  document.getElementById("p-coords-x").value = x.toFixed(2);
-  document.getElementById("p-coords-y").value = y.toFixed(2);
+  // Get click position relative to the visible viewport of the wrapper
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const clickXInWrapper = event.clientX - wrapperRect.left + wrapper.scrollLeft;
+  const clickYInWrapper = event.clientY - wrapperRect.top  + wrapper.scrollTop;
   
+  // Convert from scaled-pixel space to percentage of original 2048x2048 image
+  const mapSize = 2048; // native image size in px
+  const xPct = (clickXInWrapper / (mapSize * pickerZoom)) * 100;
+  const yPct = (clickYInWrapper / (mapSize * pickerZoom)) * 100;
+  
+  document.getElementById("p-coords-x").value = xPct.toFixed(2);
+  document.getElementById("p-coords-y").value = yPct.toFixed(2);
+  
+  // Place pin in the scrollable (pre-scaled) coordinate space
   const pin = document.getElementById("map-picker-pin");
   if (pin) {
-    pin.style.left = x.toFixed(2) + "%";
-    pin.style.top = y.toFixed(2) + "%";
+    pin.style.left = xPct.toFixed(2) + "%";
+    pin.style.top  = yPct.toFixed(2) + "%";
     pin.style.display = "block";
   }
 }
@@ -3100,37 +3122,40 @@ let isMapFullscreen = false;
 let editingActionId = null;
 
 window.zoomTacticalMap = function(amountOrScale) {
-  const container = document.getElementById("tactical-map-scrollable");
   const label = document.getElementById("tactical-zoom-label");
-  if (!container) return;
   
   if (amountOrScale === 1) {
-    tacticalZoom = Math.min(10.0, tacticalZoom + 0.25);
+    tacticalZoom = Math.min(10.0, tacticalZoom + 0.15);
   } else if (amountOrScale === -1) {
-    tacticalZoom = Math.max(1.0, tacticalZoom - 0.25);
+    tacticalZoom = Math.max(0.5, tacticalZoom - 0.15);
   } else {
     tacticalZoom = amountOrScale;
   }
   
-  container.style.width = (tacticalZoom * 100) + "%";
+  applyMapScale("tactical-map-scrollable", tacticalZoom);
   if (label) label.innerText = Math.round(tacticalZoom * 100) + "%";
 }
 
 window.zoomMapPicker = function(amountOrScale) {
-  const container = document.getElementById("map-picker-scrollable");
   const label = document.getElementById("picker-zoom-label");
-  if (!container) return;
   
   if (amountOrScale === 1) {
-    pickerZoom = Math.min(10.0, pickerZoom + 0.25);
+    pickerZoom = Math.min(10.0, pickerZoom + 0.15);
   } else if (amountOrScale === -1) {
-    pickerZoom = Math.max(1.0, pickerZoom - 0.25);
+    pickerZoom = Math.max(0.5, pickerZoom - 0.15);
   } else {
     pickerZoom = amountOrScale;
   }
   
-  container.style.width = (pickerZoom * 100) + "%";
+  applyMapScale("map-picker-scrollable", pickerZoom);
   if (label) label.innerText = Math.round(pickerZoom * 100) + "%";
+}
+
+// GPU-accelerated scale via CSS transform (zero layout reflow)
+function applyMapScale(scrollableId, scale) {
+  const el = document.getElementById(scrollableId);
+  if (!el) return;
+  el.style.transform = "scale(" + scale + ")";
 }
 
 window.toggleTacticalMapFullscreen = function() {
@@ -3160,56 +3185,98 @@ function makeMapInteractive(parentId, zoomFnName) {
   if (!parent) return;
   
   let isDown = false;
-  let startX;
-  let startY;
-  let scrollLeft;
-  let scrollTop;
+  let startX, startY, scrollLeft, scrollTop;
+  let wheelRafPending = false;
+  let wheelDeltaAccum = 0;
   
   parent.style.cursor = "grab";
+  // Enable smooth scrolling inside the container
+  parent.style.overflow = "auto";
+  parent.style.userSelect = "none";
+  parent.style.webkitUserSelect = "none";
   
-  // Arrastar mapa com o clique do mouse
+  // ── Drag-to-pan ──────────────────────────────────────────
   parent.addEventListener("mousedown", (e) => {
-    if (e.button !== 0) return; // Apenas clique esquerdo
+    if (e.button !== 0) return;
     if (e.target.closest(".map-zoom-controls") || e.target.closest(".map-blip") || e.target.closest("#map-picker-pin")) return;
     
     isDown = true;
     parent.style.cursor = "grabbing";
-    startX = e.pageX - parent.offsetLeft;
-    startY = e.pageY - parent.offsetTop;
+    startX = e.clientX;
+    startY = e.clientY;
     scrollLeft = parent.scrollLeft;
-    scrollTop = parent.scrollTop;
-  });
+    scrollTop  = parent.scrollTop;
+    e.preventDefault();
+  }, { passive: false });
   
-  parent.addEventListener("mouseleave", () => {
-    isDown = false;
-    parent.style.cursor = "grab";
-  });
-  
-  parent.addEventListener("mouseup", () => {
-    isDown = false;
-    parent.style.cursor = "grab";
-  });
+  parent.addEventListener("mouseleave", () => { isDown = false; parent.style.cursor = "grab"; });
+  parent.addEventListener("mouseup",    () => { isDown = false; parent.style.cursor = "grab"; });
   
   parent.addEventListener("mousemove", (e) => {
     if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - parent.offsetLeft;
-    const y = e.pageY - parent.offsetTop;
-    const walkX = (x - startX) * 1.5; // Velocidade de arrasto
-    const walkY = (y - startY) * 1.5;
-    parent.scrollLeft = scrollLeft - walkX;
-    parent.scrollTop = scrollTop - walkY;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    parent.scrollLeft = scrollLeft - dx;
+    parent.scrollTop  = scrollTop  - dy;
   });
   
-  // Zoom com a roda do mouse (Scroll Wheel)
+  // ── Wheel-to-zoom — throttled with rAF ───────────────────
   parent.addEventListener("wheel", (e) => {
     e.preventDefault();
-    if (e.deltaY < 0) {
-      window[zoomFnName](1);
-    } else {
-      window[zoomFnName](-1);
+    wheelDeltaAccum += e.deltaY;
+    
+    if (!wheelRafPending) {
+      wheelRafPending = true;
+      requestAnimationFrame(() => {
+        if (wheelDeltaAccum < 0) {
+          window[zoomFnName](1);
+        } else {
+          window[zoomFnName](-1);
+        }
+        wheelDeltaAccum = 0;
+        wheelRafPending = false;
+      });
     }
   }, { passive: false });
+  
+  // ── Touch support (pinch-to-zoom + pan) ──────────────────
+  let lastTouchDist = null;
+  parent.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 2) {
+      lastTouchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    } else if (e.touches.length === 1) {
+      isDown = true;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      scrollLeft = parent.scrollLeft;
+      scrollTop  = parent.scrollTop;
+    }
+  }, { passive: true });
+  
+  parent.addEventListener("touchmove", (e) => {
+    if (e.touches.length === 2 && lastTouchDist !== null) {
+      e.preventDefault();
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const delta = dist - lastTouchDist;
+      if (Math.abs(delta) > 5) {
+        window[zoomFnName](delta > 0 ? 1 : -1);
+        lastTouchDist = dist;
+      }
+    } else if (e.touches.length === 1 && isDown) {
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      parent.scrollLeft = scrollLeft - dx;
+      parent.scrollTop  = scrollTop  - dy;
+    }
+  }, { passive: false });
+  
+  parent.addEventListener("touchend", () => { isDown = false; lastTouchDist = null; });
 }
 
 // ==================== RENDERING ACTIONS MODULE ====================
