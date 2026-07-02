@@ -154,10 +154,10 @@ button, input, textarea, select {
 }
 
 .menu-item i {
-  font-size: 1.05rem;
+  font-size: 0.7rem;
   width: 20px;
   text-align: center;
-  transition: var(--transitions);
+  transition: font-size 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .menu-item:hover {
@@ -167,6 +167,7 @@ button, input, textarea, select {
 
 .menu-item:hover i {
   color: var(--accent-color-hover);
+  font-size: 0.95rem;
   transform: translateX(2px);
 }
 
