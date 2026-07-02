@@ -17,7 +17,8 @@ const statusTranslations = {
   "Inactive": "Inativo",
   "Pending": "Pendente",
   "Approved": "Aprovado",
-  "Rejected": "Rejeitado"
+  "Rejected": "Rejeitado",
+  "Archived": "Excluído"
 };
 
 const threatTranslations = {
@@ -497,8 +498,8 @@ function updateTopbarTotals() {
   if (topbarOps) topbarOps.innerText = activeOps;
   if (dashOps) dashOps.innerText = activeOps;
   
-  // Total de Membros / Ativos
-  const totalMem = state.members.length;
+  // Total de Membros / Ativos (excluindo arquivados do total operacional)
+  const totalMem = state.members.filter(m => m.status !== "Archived").length;
   const activeMem = state.members.filter(m => m.status === "Active").length;
   const dashTotalMem = document.getElementById("dash-total-members");
   const dashActiveMem = document.getElementById("dash-active-members");
@@ -846,7 +847,7 @@ function renderMembersList() {
   const filtered = state.members.filter(m => {
     const matchName = m.fullName.toLowerCase().includes(query) || (m.nickname && m.nickname.toLowerCase().includes(query));
     const matchRank = filterRank === "" || m.rank === filterRank;
-    const matchStatus = filterStatus === "" || m.status === filterStatus;
+    const matchStatus = filterStatus === "" ? (m.status !== "Archived") : m.status === filterStatus;
     return matchName && matchRank && matchStatus;
   });
   
@@ -908,9 +909,15 @@ function renderMemberDetail() {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 10px; flex-wrap: wrap;">
           <div class="profile-hero-rank">${rankTranslations[m.rank]}</div>
           <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary btn-sm" onclick="toggleMemberStatus('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem;"><i class="fas ${m.status === 'Active' ? 'fa-user-slash' : 'fa-user-check'}"></i> ${m.status === 'Active' ? 'Desativar' : 'Ativar'}</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleMemberStatus('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem;">
+              <i class="fas ${m.status === 'Active' ? 'fa-user-slash' : m.status === 'Archived' ? 'fa-undo' : 'fa-user-check'}"></i> 
+              ${m.status === 'Active' ? 'Desativar' : m.status === 'Archived' ? 'Restaurar' : 'Ativar'}
+            </button>
             <button class="btn btn-primary btn-sm" onclick="editMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: linear-gradient(135deg, #b71c1c 0%, #5f0909 100%);"><i class="fas fa-edit"></i> Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: #c62828;"><i class="fas fa-trash-alt"></i> Excluir</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: #c62828;">
+              <i class="fas ${m.status === 'Archived' ? 'fa-trash-alt' : 'fa-archive'}"></i> 
+              ${m.status === 'Archived' ? 'Excluir Definitivamente' : 'Excluir'}
+            </button>
           </div>
         </div>
         <div class="profile-hero-name">${m.fullName}</div>
@@ -1212,7 +1219,11 @@ window.toggleMemberStatus = function(memberId) {
   if (!m) return;
   
   const oldStatus = m.status;
-  m.status = (oldStatus === "Active" ? "Inactive" : "Active");
+  if (oldStatus === "Archived" || oldStatus === "Inactive") {
+    m.status = "Active";
+  } else {
+    m.status = "Inactive";
+  }
   m.lastActivity = new Date().toISOString().slice(0, 16).replace("T", " ");
   
   const statusLabel = m.status === "Active" ? "Ativo" : "Inativo";
@@ -1231,20 +1242,49 @@ window.deleteMemberDossier = function(memberId) {
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
   
-  if (confirm(`Tem certeza que deseja excluir permanentemente o dossiê e registros de: ${m.fullName}?`)) {
-    const idx = state.members.findIndex(member => member.id === memberId);
-    if (idx !== -1) {
-      state.members.splice(idx, 1);
+  if (m.status === "Archived") {
+    // Exclusão definitiva
+    if (confirm(`Tem certeza que deseja EXCLUIR DEFINITIVAMENTE o dossiê de ${m.fullName}? Esta ação é irreversível.`)) {
+      const idx = state.members.findIndex(member => member.id === memberId);
+      if (idx !== -1) {
+        state.members.splice(idx, 1);
+        
+        // Remover veículos da frota global pertencentes ao membro excluído
+        state.vehicles = state.vehicles.filter(v => v.owner !== m.fullName);
+        
+        // Se for o membro ativo, focar em outro membro não excluído
+        const remaining = state.members.filter(member => member.status !== "Archived");
+        if (activeMemberId === memberId) {
+          activeMemberId = remaining.length > 0 ? remaining[0].id : null;
+        }
+        
+        logActivity(`Dossiê de ${m.fullName} excluído definitivamente do sindicato.`, "Membro");
+        saveState();
+        renderMembersList();
+        showToast(`Dossiê de ${m.fullName} removido definitivamente`, "error");
+      }
+    }
+  } else {
+    // Soft-delete (Arquivar para a lista de Excluídos)
+    if (confirm(`Deseja mover o dossiê de ${m.fullName} para a lista de Excluídos?`)) {
+      m.status = "Archived";
+      m.lastActivity = new Date().toISOString().slice(0, 16).replace("T", " ");
+      m.history.unshift({
+        time: new Date().toISOString().slice(0, 16).replace("T", " "),
+        desc: "Dossiê arquivado na lista de excluídos."
+      });
       
-      // Se o membro excluído for o ativo selecionado, focar em outro membro restante
+      logActivity(`Dossiê de ${m.fullName} arquivado na lixeira do sindicato.`, "Membro");
+      saveState();
+      
+      // Selecionar outro membro operacional
+      const remaining = state.members.filter(member => member.status !== "Archived");
       if (activeMemberId === memberId) {
-        activeMemberId = state.members.length > 0 ? state.members[0].id : null;
+        activeMemberId = remaining.length > 0 ? remaining[0].id : null;
       }
       
-      logActivity(`Dossiê do membro ${m.fullName} excluído permanentemente do sindicato.`, "Membro");
-      saveState();
       renderMembersList();
-      showToast(`Dossiê de ${m.fullName} removido do sistema`, "error");
+      showToast(`Dossiê de ${m.fullName} arquivado`, "error");
     }
   }
 }
