@@ -1383,6 +1383,45 @@
     </div>
   </div>
   
+  <!-- FLOATING POCKET CALCULATOR -->
+  <button type="button" class="floating-calc-btn" id="btn-toggle-float-calc" onclick="toggleFloatingCalculator()">
+    <i class="fas fa-calculator"></i>
+  </button>
+  
+  <div class="floating-calc-panel" id="floating-calculator">
+    <div class="floating-calc-header">
+      <span><i class="fas fa-calculator"></i> Conta Rápida</span>
+      <button type="button" class="close-float-calc" onclick="toggleFloatingCalculator()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="pocket-calc-container" style="box-shadow: none; margin: 0; padding: 10px; border: none; background: transparent;">
+      <div class="calc-screen" id="float-calc-screen" style="font-size: 1.5rem; height: 50px; margin-bottom: 10px;">0</div>
+      <div class="calc-keyboard" style="gap: 6px;">
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('C')">C</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('Backspace')"><i class="fas fa-backspace"></i></button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('/')">/</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('*')">*</button>
+        
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('7')">7</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('8')">8</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('9')">9</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('-')">-</button>
+        
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('4')">4</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('5')">5</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('6')">6</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('+')">+</button>
+        
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('1')">1</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('2')">2</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('3')">3</button>
+        <button type="button" class="btn btn-primary btn-calc btn-equal" style="height: 86px; font-size: 0.95rem; grid-row: span 2;" onclick="pressFloatCalcKey('=')">=</button>
+        
+        <button type="button" class="btn btn-secondary btn-calc btn-zero" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('0')">0</button>
+        <button type="button" class="btn btn-secondary btn-calc" style="height: 40px; font-size: 0.95rem;" onclick="pressFloatCalcKey('.')">.</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST FEEDBACK AREA -->
   <div class="toast-container" id="toast-container"></div>
 

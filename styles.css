@@ -2297,3 +2297,83 @@ input:checked + .slider:before {
   height: 1px;
   background: var(--border-color);
 }
+
+/* Floating Calculator Button */
+.floating-calc-btn {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(183, 28, 28, 0.4), var(--shadow-accent);
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.floating-calc-btn:hover {
+  transform: scale(1.1) rotate(5deg);
+  background: var(--accent-color-hover);
+  box-shadow: 0 6px 20px rgba(183, 28, 28, 0.6), var(--shadow-accent-strong);
+}
+
+/* Floating Calculator Panel */
+.floating-calc-panel {
+  position: fixed;
+  bottom: 95px;
+  right: 25px;
+  width: 280px;
+  background: rgba(14, 14, 18, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg), var(--shadow-accent);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+
+.floating-calc-panel.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  border-color: var(--border-color-hover);
+}
+
+.floating-calc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: rgba(183, 28, 28, 0.1);
+  border-bottom: 1px solid var(--border-color);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.close-float-calc {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.close-float-calc:hover {
+  color: var(--accent-color-hover);
+}

@@ -2674,3 +2674,63 @@ function renderCalculator() {
   calcLoanPMT();
   renderForecastTable();
 }
+
+// ==================== FLOATING POCKET CALCULATOR ENGINE ====================
+let floatCalcExpression = "";
+
+window.toggleFloatingCalculator = function() {
+  const panel = document.getElementById("floating-calculator");
+  if (panel) {
+    panel.classList.toggle("active");
+  }
+}
+
+window.pressFloatCalcKey = function(key) {
+  const screen = document.getElementById("float-calc-screen");
+  if (!screen) return;
+  
+  if (key === "C") {
+    floatCalcExpression = "";
+    screen.innerText = "0";
+  } else if (key === "Backspace") {
+    floatCalcExpression = floatCalcExpression.slice(0, -1);
+    screen.innerText = floatCalcExpression || "0";
+  } else if (key === "=") {
+    try {
+      if (floatCalcExpression) {
+        const cleanExpr = floatCalcExpression.replace(/[^0-9+\-*/().]/g, "");
+        const result = new Function(`return ${cleanExpr}`)();
+        screen.innerText = result.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+        floatCalcExpression = String(result);
+      }
+    } catch (e) {
+      screen.innerText = "Erro";
+      floatCalcExpression = "";
+    }
+  } else {
+    if (screen.innerText === "0" && !isNaN(key)) {
+      floatCalcExpression = key;
+    } else {
+      floatCalcExpression += key;
+    }
+    screen.innerText = floatCalcExpression;
+  }
+}
+
+// Keyboard support for floating calculator (only when it is active)
+document.addEventListener("keydown", (e) => {
+  const panel = document.getElementById("floating-calculator");
+  if (!panel || !panel.classList.contains("active")) return;
+  
+  if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") {
+    return;
+  }
+  
+  const validKeys = ["0","1","2","3","4","5","6","7","8","9","+","-","*","/",".","=","Enter","Backspace","Escape"];
+  if (validKeys.includes(e.key)) {
+    e.preventDefault();
+    if (e.key === "Enter") pressFloatCalcKey("=");
+    else if (e.key === "Escape") pressFloatCalcKey("C");
+    else pressFloatCalcKey(e.key);
+  }
+});
