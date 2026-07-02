@@ -2751,26 +2751,46 @@ function initFormSubmissions() {
         }
       });
       
-      const newAct = {
-        id: "ACT-" + Date.now().toString().slice(-6),
-        type,
-        revenue,
-        cost: totalCost,
-        profit: revenue - totalCost,
-        date,
-        participants: selectedParticipants,
-        materials: materials
-      };
-      
-      if (!state.actions) state.actions = [];
-      state.actions.push(newAct);
-      
-      logActivity(`Registrou ação de campo: ${type} (${selectedParticipants.join(", ")})`, "Operação");
-      saveState();
+      if (editingActionId) {
+        // Modo Edição
+        const actIndex = state.actions.findIndex(act => act.id === editingActionId);
+        if (actIndex !== -1) {
+          state.actions[actIndex] = {
+            id: editingActionId,
+            type,
+            revenue,
+            cost: totalCost,
+            profit: revenue - totalCost,
+            date,
+            participants: selectedParticipants,
+            materials: materials
+          };
+          logActivity(`Editou ação de campo: ${type} (${selectedParticipants.join(", ")})`, "Operação");
+          saveState();
+          showToast("Ação atualizada com sucesso", "success");
+        }
+        editingActionId = null;
+      } else {
+        // Modo Criação
+        const newAct = {
+          id: "ACT-" + Date.now().toString().slice(-6),
+          type,
+          revenue,
+          cost: totalCost,
+          profit: revenue - totalCost,
+          date,
+          participants: selectedParticipants,
+          materials: materials
+        };
+        if (!state.actions) state.actions = [];
+        state.actions.push(newAct);
+        logActivity(`Registrou ação de campo: ${type} (${selectedParticipants.join(", ")})`, "Operação");
+        saveState();
+        showToast("Ação de campo registrada com sucesso", "success");
+      }
       
       closeModal("modal-new-action");
       renderActions();
-      showToast("Ação de campo registrada com sucesso", "success");
     });
   }
 }
@@ -3077,6 +3097,7 @@ document.addEventListener("keydown", (e) => {
 let tacticalZoom = 1.0;
 let pickerZoom = 1.0;
 let isMapFullscreen = false;
+let editingActionId = null;
 
 window.zoomTacticalMap = function(amountOrScale) {
   const container = document.getElementById("tactical-map-scrollable");
@@ -3337,9 +3358,14 @@ window.renderActions = function() {
         </div>
       </td>
       <td>
-        <button class="btn btn-secondary btn-sm" onclick="deleteAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff;" title="Excluir Registro">
-          <i class="fas fa-trash-alt"></i>
-        </button>
+        <div style="display: flex; gap: 4px;">
+          <button class="btn btn-secondary btn-sm" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff; cursor: pointer;" title="Excluir Registro">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
       </td>
     `;
     tableBody.appendChild(row);
@@ -3360,11 +3386,81 @@ window.deleteAction = function(id) {
   }
 }
 
+window.editAction = function(id) {
+  const act = state.actions.find(a => a.id === id);
+  if (!act) return;
+  
+  editingActionId = id;
+  
+  // Set modal texts
+  const title = document.getElementById("modal-action-title");
+  const submitBtn = document.getElementById("btn-submit-action");
+  if (title) title.innerHTML = `<i class="fas fa-edit"></i> Editar Ação Realizada`;
+  if (submitBtn) submitBtn.innerText = "Salvar Alterações";
+  
+  // Fill inputs
+  document.getElementById("act-type").value = act.type;
+  document.getElementById("act-revenue").value = act.revenue;
+  document.getElementById("act-date").value = act.date;
+  
+  // Load materials rows
+  const rowsContainer = document.getElementById("act-materials-rows");
+  if (rowsContainer) {
+    rowsContainer.innerHTML = "";
+    if (act.materials && act.materials.length > 0) {
+      act.materials.forEach(m => {
+        addActionMaterialRow(m.name, m.quantity, m.unitCost);
+      });
+    } else {
+      addActionMaterialRow("", 1, 0);
+    }
+  }
+  
+  // Load participants checkboxes (display active members + checked current participants)
+  const container = document.getElementById("act-participants-checkboxes");
+  if (container) {
+    container.innerHTML = "";
+    
+    const activeNames = state.members.filter(m => m.status === "Active").map(m => m.fullName);
+    const allNames = Array.from(new Set([...activeNames, ...act.participants]));
+    
+    if (allNames.length === 0) {
+      container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.75rem; margin: 0;'>Nenhum membro participante disponível.</p>";
+    } else {
+      allNames.forEach(name => {
+        const isChecked = act.participants.includes(name);
+        const label = document.createElement("label");
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.gap = "8px";
+        label.style.fontSize = "0.75rem";
+        label.style.cursor = "pointer";
+        label.style.color = "var(--text-primary)";
+        label.innerHTML = `<input type="checkbox" name="act-member" value="${name}" ${isChecked ? "checked" : ""}> ${name}`;
+        container.appendChild(label);
+      });
+    }
+  }
+  
+  // Update profit numbers
+  calcActionModalProfit();
+  
+  openModal("modal-new-action");
+}
+
 // Bind New Action button and modal open
 document.addEventListener("DOMContentLoaded", () => {
   const btnOpenAction = document.getElementById("btn-open-new-action");
   if (btnOpenAction) {
     btnOpenAction.addEventListener("click", () => {
+      editingActionId = null;
+      
+      // Reset modal texts
+      const title = document.getElementById("modal-action-title");
+      const submitBtn = document.getElementById("btn-submit-action");
+      if (title) title.innerHTML = `<i class="fas fa-tasks"></i> Registrar Ação Realizada`;
+      if (submitBtn) submitBtn.innerText = "Registrar Ação";
+      
       // Limpar campos
       document.getElementById("form-new-action").reset();
       document.getElementById("act-date").value = new Date().toISOString().slice(0, 10);
@@ -3376,7 +3472,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const rowsContainer = document.getElementById("act-materials-rows");
       if (rowsContainer) {
         rowsContainer.innerHTML = "";
-        // Adiciona a primeira linha em branco para guiar o usuário
         addActionMaterialRow("", 1, 0);
       }
       
