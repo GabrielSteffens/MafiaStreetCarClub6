@@ -270,6 +270,11 @@ const defaultState = {
     { name: "Galpão Portuário Hoboken 4", address: "Área Industrial das Docas, Empire Bay", type: "Galpão", security: "Padrão", guards: "3 Soldados", storage: "Estoque de bebidas e peças importadas", photo: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400", coords: { x: 62.1, y: 72.8 } },
     { name: "Sede Central Little Italy", address: "Avenida Little Italy, 12, Empire Bay", type: "Sede do Clube", security: "Máxima Proteção", guards: "5 Soldados", storage: "Cofre de depósitos e documentos fiscais", photo: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&q=80&w=400", coords: { x: 50.5, y: 48.0 } }
   ],
+  actions: [
+    { id: "ACT-001", type: "Roubo de Carga", cost: 1500, revenue: 15000, profit: 13500, date: "2026-07-01", participants: ["Vito Scaletta", "Joe Barbaro"] },
+    { id: "ACT-002", type: "Corrida Clandestina", cost: 500, revenue: 5000, profit: 4500, date: "2026-06-29", participants: ["Joe Barbaro"] },
+    { id: "ACT-003", type: "Contrabando", cost: 3000, revenue: 22000, profit: 19000, date: "2026-06-25", participants: ["Vito Scaletta", "Leo Galante"] }
+  ],
   meetings: [
     { title: "Partilha de Divisas de Territórios", date: "2026-07-05", time: "20:00", location: "Sala de Reuniões da Sede", participants: "Vito, Joe, Salieri, Henry", attendance: "Scheduled", notes: "Análise dos relatórios de taxas das docas e postos de combustível." },
     { title: "Rotas de Fuga Operação Colarinho", date: "2026-06-28", time: "18:00", location: "Mona Lisa Lounge", participants: "Vito, Joe, Leo", attendance: "Completed", notes: "Definição de veículos de reserva posicionados na via de acesso ao aeroporto." }
@@ -291,6 +296,10 @@ function loadState() {
   if (localData) {
     try {
       state = JSON.parse(localData);
+      if (!state.actions) {
+        state.actions = JSON.parse(JSON.stringify(defaultState.actions || []));
+        saveState();
+      }
     } catch (e) {
       console.error("Erro ao ler localStorage, reiniciando dados de fábrica...", e);
       state = JSON.parse(JSON.stringify(defaultState));
@@ -444,6 +453,7 @@ function renderModule(moduleName) {
       members: "Dossiê de Membros",
       recruitment: "Funil de Recrutamento",
       operations: "Centro de Operações Táticas",
+      actions: "Registro de Ações",
       treasury: "Livro Caixa da Tesouraria",
       vehicles: "Frota de Veículos",
       equipment: "Arsenal do Armaria",
@@ -473,6 +483,9 @@ function renderModule(moduleName) {
       break;
     case "operations":
       renderOperations();
+      break;
+    case "actions":
+      renderActions();
       break;
     case "treasury":
       renderTreasury();
@@ -929,6 +942,8 @@ function renderMemberDetail() {
     return;
   }
   
+  const memberActions = (state.actions || []).filter(act => act.participants && act.participants.includes(m.fullName));
+  
   container.innerHTML = `
     <div class="profile-hero-card">
       <div class="profile-hero-photo-wrapper">
@@ -986,6 +1001,7 @@ function renderMemberDetail() {
         <button class="tab-button" onclick="switchMemberTab(event, 'tab-vehicles')">Veículos</button>
         <button class="tab-button" onclick="switchMemberTab(event, 'tab-history')">Histórico</button>
         <button class="tab-button" onclick="switchMemberTab(event, 'tab-warnings')">Avisos (${m.warnings ? m.warnings.length : 0})</button>
+        <button class="tab-button" onclick="switchMemberTab(event, 'tab-member-actions')">Ações (${memberActions.length})</button>
       </nav>
       
       <!-- 1. INFO TAB -->
@@ -1097,6 +1113,42 @@ function renderMemberDetail() {
           <!-- Avisos -->
         </div>
       </div>
+
+      <!-- 5. ACTIONS TAB -->
+      <div id="tab-member-actions" class="tab-panel" style="margin-top: 15px;">
+        <div class="premium-card" style="padding: 15px;">
+          <h4 class="info-box-title" style="margin-bottom: 15px;"><i class="fas fa-tasks"></i> Histórico de Ações de Campo</h4>
+          <div class="custom-table-container">
+            <table class="custom-table" style="font-size: 0.75rem; width: 100%;">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Tipo de Ação</th>
+                  <th>Material Gasto</th>
+                  <th>Valor Ganho</th>
+                  <th>Lucro Líquido</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${memberActions.length === 0 ? `
+                  <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">Nenhuma ação registrada para este membro.</td>
+                  </tr>
+                ` : memberActions.map(act => `
+                  <tr>
+                    <td>${act.date}</td>
+                    <td><strong>${act.type}</strong></td>
+                    <td style="color: #F44336; font-family: monospace;">-$${act.cost.toLocaleString('pt-BR')}</td>
+                    <td style="color: #4CAF50; font-family: monospace;">+$${act.revenue.toLocaleString('pt-BR')}</td>
+                    <td style="font-weight: 700; color: ${act.profit >= 0 ? '#4CAF50' : '#F44336'}; font-family: monospace;">$${act.profit.toLocaleString('pt-BR')}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   `;
   
@@ -2666,6 +2718,47 @@ function initFormSubmissions() {
       showToast("Imóvel registrado com sucesso", "success");
     });
   }
+
+  // 9. REGISTRAR AÇÃO
+  const formAction = document.getElementById("form-new-action");
+  if (formAction) {
+    formAction.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const type = document.getElementById("act-type").value;
+      const revenue = parseFloat(document.getElementById("act-revenue").value) || 0;
+      const cost = parseFloat(document.getElementById("act-cost").value) || 0;
+      const date = document.getElementById("act-date").value;
+      
+      const checkboxes = document.querySelectorAll('input[name="act-member"]:checked');
+      const selectedParticipants = Array.from(checkboxes).map(cb => cb.value);
+      
+      if (selectedParticipants.length === 0) {
+        showToast("Selecione pelo menos um participante para registrar a ação.", "error");
+        return;
+      }
+      
+      const newAct = {
+        id: "ACT-" + Date.now().toString().slice(-6),
+        type,
+        revenue,
+        cost,
+        profit: revenue - cost,
+        date,
+        participants: selectedParticipants
+      };
+      
+      if (!state.actions) state.actions = [];
+      state.actions.push(newAct);
+      
+      logActivity(`Registrou ação de campo: ${type} (${selectedParticipants.join(", ")})`, "Operação");
+      saveState();
+      
+      closeModal("modal-new-action");
+      renderActions();
+      showToast("Ação de campo registrada com sucesso", "success");
+    });
+  }
 }
 
 window.pickPropertyCoords = function(event) {
@@ -3083,3 +3176,143 @@ function makeMapInteractive(parentId, zoomFnName) {
     }
   }, { passive: false });
 }
+
+// ==================== RENDERING ACTIONS MODULE ====================
+window.renderActions = function() {
+  const tableBody = document.getElementById("actions-table-body");
+  if (!tableBody) return;
+  
+  if (!state.actions) state.actions = [];
+  
+  // Update totals
+  let totalRevenue = 0;
+  let totalCost = 0;
+  let totalProfit = 0;
+  
+  state.actions.forEach(act => {
+    totalRevenue += act.revenue;
+    totalCost += act.cost;
+    totalProfit += act.profit;
+  });
+  
+  const profitEl = document.getElementById("actions-total-profit");
+  const revEl = document.getElementById("actions-total-revenue");
+  const countEl = document.getElementById("actions-total-count");
+  
+  if (profitEl) {
+    profitEl.innerText = "$" + totalProfit.toLocaleString('pt-BR');
+    profitEl.style.color = totalProfit >= 0 ? "#4CAF50" : "#F44336";
+  }
+  if (revEl) revEl.innerText = "$" + totalRevenue.toLocaleString('pt-BR');
+  if (countEl) countEl.innerText = state.actions.length;
+  
+  // Render table rows
+  tableBody.innerHTML = "";
+  if (state.actions.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
+          <i class="fas fa-tasks" style="font-size: 2rem; margin-bottom: 10px; color: var(--border-color);"></i>
+          <p>Nenhuma ação registrada no histórico.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  // Sort actions by date descending
+  const sortedActions = [...state.actions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  sortedActions.forEach(act => {
+    const row = document.createElement("tr");
+    
+    // Formatar data
+    const dateFormatted = act.date ? act.date.split("-").reverse().join("/") : "N/A";
+    
+    row.innerHTML = `
+      <td>${dateFormatted}</td>
+      <td><strong>${act.type}</strong></td>
+      <td style="color: #F44336; font-family: monospace;">-$${act.cost.toLocaleString('pt-BR')}</td>
+      <td style="color: #4CAF50; font-family: monospace;">+$${act.revenue.toLocaleString('pt-BR')}</td>
+      <td style="font-weight: 700; color: ${act.profit >= 0 ? '#4CAF50' : '#F44336'}; font-family: monospace;">$${act.profit.toLocaleString('pt-BR')}</td>
+      <td>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+          ${act.participants.map(p => `<span class="badge" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); font-size: 0.65rem; padding: 2px 6px;">${p}</span>`).join("")}
+        </div>
+      </td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="deleteAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff;" title="Excluir Registro">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+window.deleteAction = function(id) {
+  if (confirm("Tem certeza que deseja excluir esta ação permanentemente do histórico?")) {
+    const actionIndex = state.actions.findIndex(act => act.id === id);
+    if (actionIndex !== -1) {
+      const act = state.actions[actionIndex];
+      state.actions.splice(actionIndex, 1);
+      logActivity(`Excluiu ação de campo: ${act.type} de ${act.date}`, "Operação");
+      saveState();
+      renderActions();
+      showToast("Ação excluída com sucesso", "success");
+    }
+  }
+}
+
+window.calcActionModalProfit = function() {
+  const rev = parseFloat(document.getElementById("act-revenue").value) || 0;
+  const cost = parseFloat(document.getElementById("act-cost").value) || 0;
+  const profit = rev - cost;
+  const display = document.getElementById("act-profit-display");
+  if (display) {
+    display.value = "$" + profit.toLocaleString('pt-BR');
+    if (profit >= 0) {
+      display.style.color = "#4CAF50";
+    } else {
+      display.style.color = "#F44336";
+    }
+  }
+}
+
+// Bind New Action button and modal open
+document.addEventListener("DOMContentLoaded", () => {
+  const btnOpenAction = document.getElementById("btn-open-new-action");
+  if (btnOpenAction) {
+    btnOpenAction.addEventListener("click", () => {
+      // Limpar campos
+      document.getElementById("form-new-action").reset();
+      document.getElementById("act-date").value = new Date().toISOString().slice(0, 10);
+      document.getElementById("act-profit-display").value = "$0";
+      document.getElementById("act-profit-display").style.color = "#4CAF50";
+      
+      // Carregar lista de participantes (apenas membros ativos)
+      const container = document.getElementById("act-participants-checkboxes");
+      if (container) {
+        container.innerHTML = "";
+        const activeMembers = state.members.filter(m => m.status === "Active");
+        if (activeMembers.length === 0) {
+          container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.75rem; margin: 0;'>Nenhum membro ativo cadastrado no sistema.</p>";
+        } else {
+          activeMembers.forEach(m => {
+            const label = document.createElement("label");
+            label.style.display = "flex";
+            label.style.alignItems = "center";
+            label.style.gap = "8px";
+            label.style.fontSize = "0.75rem";
+            label.style.cursor = "pointer";
+            label.style.color = "var(--text-primary)";
+            label.innerHTML = `<input type="checkbox" name="act-member" value="${m.fullName}"> ${m.fullName}`;
+            container.appendChild(label);
+          });
+        }
+      }
+      
+      openModal("modal-new-action");
+    });
+  }
+});

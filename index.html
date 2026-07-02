@@ -55,6 +55,12 @@
           </div>
         </li>
         <li>
+          <div class="menu-item" data-module="actions" id="nav-actions">
+            <i class="fas fa-tasks"></i>
+            <span>Ações</span>
+          </div>
+        </li>
+        <li>
           <div class="menu-item" data-module="treasury" id="nav-treasury">
             <i class="fas fa-wallet"></i>
             <span>Tesouraria</span>
@@ -322,6 +328,64 @@
           </div>
         </div>
         
+        <!-- ==================== ACTIONS MODULE ==================== -->
+        <div id="module-actions" class="module-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fas fa-tasks"></i> Registro & Acompanhamento de Ações</h2>
+            <button class="btn btn-primary" id="btn-open-new-action"><i class="fas fa-plus"></i> Registrar Ação</button>
+          </div>
+
+          <!-- Actions Stats Grid -->
+          <div class="treasury-stats-grid" style="margin-bottom: 20px;">
+            <div class="premium-card">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Lucro Acumulado de Ações</span>
+                <div class="stat-card-icon"><i class="fas fa-chart-line" style="color: #4CAF50;"></i></div>
+              </div>
+              <div class="stat-card-value" id="actions-total-profit" style="color: #4CAF50;">$0</div>
+            </div>
+            <div class="premium-card">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Faturamento Total</span>
+                <div class="stat-card-icon"><i class="fas fa-coins"></i></div>
+              </div>
+              <div class="stat-card-value" id="actions-total-revenue">$0</div>
+            </div>
+            <div class="premium-card">
+              <div class="stat-card-header">
+                <span class="stat-card-title">Ações Executadas</span>
+                <div class="stat-card-icon"><i class="fas fa-calendar-check"></i></div>
+              </div>
+              <div class="stat-card-value" id="actions-total-count">0</div>
+            </div>
+          </div>
+
+          <!-- Actions Table List -->
+          <div class="premium-card">
+            <div class="panel-header" style="padding-left: 0; padding-top: 0; margin-bottom: 15px;">
+              <h3 class="panel-title" style="font-size: 0.9rem;"><i class="fas fa-list-ul"></i> Histórico Recente de Atividades</h3>
+            </div>
+            <div class="custom-table-container">
+              <table class="custom-table" id="actions-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Tipo de Ação</th>
+                    <th>Material Gasto</th>
+                    <th>Valor Ganho</th>
+                    <th>Lucro Líquido</th>
+                    <th>Participantes</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="actions-table-body">
+                  <!-- Carregado via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- ==================== TREASURY MODULE ==================== -->
         <div id="module-treasury" class="module-panel">
           <div class="treasury-stats-grid">
@@ -1172,6 +1236,65 @@
   </div>
   
   
+  <!-- 4b. REGISTRAR AÇÃO MODAL -->
+  <div class="modal-overlay" id="modal-new-action">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-tasks"></i> Registrar Ação Realizada</h3>
+        <button class="modal-close" data-close-modal="modal-new-action"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-action">
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Tipo de Ação *</label>
+            <select class="form-select" id="act-type" required>
+              <option value="Roubo a Loja">Roubo a Loja (Store Robbery)</option>
+              <option value="Corrida Clandestina">Corrida Clandestina (Street Race)</option>
+              <option value="Roubo de Carga">Roubo de Carga (Cargo Hijack)</option>
+              <option value="Contrabando">Contrabando de Armas/Bebidas</option>
+              <option value="Assalto a Banco">Assalto a Banco (Bank Heist)</option>
+              <option value="Outro">Outro (Serviço Avulso)</option>
+            </select>
+          </div>
+
+          <div class="form-group-grid" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div class="form-control-wrapper">
+              <label class="form-label">Valor Ganho ($) *</label>
+              <input type="number" class="form-input" id="act-revenue" required min="0" placeholder="Faturamento Bruto" oninput="calcActionModalProfit()">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Material Gasto ($) *</label>
+              <input type="number" class="form-input" id="act-cost" required min="0" placeholder="Custos / Despesas" oninput="calcActionModalProfit()">
+            </div>
+          </div>
+
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Lucro Estimado ($)</label>
+            <input type="text" class="form-input" id="act-profit-display" readonly disabled value="$0" style="background: rgba(0,0,0,0.25); color: #4CAF50; font-weight: 700;">
+          </div>
+
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Data da Execução *</label>
+            <input type="date" class="form-input" id="act-date" required>
+          </div>
+
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Participantes * (Selecione um ou mais)</label>
+            <div class="checkbox-group-wrapper" id="act-participants-checkboxes" style="max-height: 120px; overflow-y: auto; border: 1.5px solid var(--border-color); padding: 10px; border-radius: 6px; background: rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 6px;">
+              <!-- Preenchido via JS com os membros cadastrados -->
+            </div>
+            <span style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; display: block;">Somente membros ativos são exibidos para seleção.</span>
+          </div>
+
+          <div class="modal-footer" style="padding-right: 0; padding-bottom: 0;">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-new-action">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar Ação</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- 5. ADD VEHICLE MODAL (GLOBAL FLEET) -->
   <div class="modal-overlay" id="modal-new-vehicle">
     <div class="modal-container" style="max-width: 500px;">
