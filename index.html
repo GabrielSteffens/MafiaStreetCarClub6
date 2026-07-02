@@ -97,6 +97,12 @@
           </div>
         </li>
         <li>
+          <div class="menu-item" data-module="calculator" id="nav-calculator">
+            <i class="fas fa-calculator"></i>
+            <span>Calculadora</span>
+          </div>
+        </li>
+        <li>
           <div class="menu-item" data-module="settings" id="nav-settings">
             <i class="fas fa-sliders-h"></i>
             <span>Configurações</span>
@@ -532,6 +538,208 @@
               <div class="report-preview-title" id="report-preview-title">Dossiê dos Membros</div>
               <div class="report-preview-content" id="report-preview-body">
                 <!-- Carregado via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ==================== CALCULATOR MODULE ==================== -->
+        <div id="module-calculator" class="module-panel">
+          <div class="row">
+            <div class="col-5">
+              <div class="premium-card">
+                <div class="panel-header">
+                  <h3 class="panel-title"><i class="fas fa-calculator"></i> Calculadora de Bolso</h3>
+                </div>
+                
+                <div class="pocket-calc-container">
+                  <div class="calc-screen" id="calc-screen">0</div>
+                  <div class="calc-keyboard">
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('C')">C</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('Backspace')"><i class="fas fa-backspace"></i></button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('/')">/</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('*')">*</button>
+                    
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('7')">7</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('8')">8</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('9')">9</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('-')">-</button>
+                    
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('4')">4</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('5')">5</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('6')">6</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('+')">+</button>
+                    
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('1')">1</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('2')">2</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('3')">3</button>
+                    <button type="button" class="btn btn-primary btn-calc btn-equal" onclick="pressCalcKey('=')">=</button>
+                    
+                    <button type="button" class="btn btn-secondary btn-calc btn-zero" onclick="pressCalcKey('0')">0</button>
+                    <button type="button" class="btn btn-secondary btn-calc" onclick="pressCalcKey('.')">.</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-7">
+              <div class="premium-card">
+                <div class="panel-header">
+                  <h3 class="panel-title"><i class="fas fa-file-excel"></i> Fórmulas e Simulações (Estilo Excel)</h3>
+                </div>
+                
+                <div class="tab-container" style="margin-top: 10px;">
+                  <nav class="tab-nav">
+                    <button type="button" class="tab-button active" onclick="switchCalcTab(event, 'calc-tab-split')">Divisão de Ações</button>
+                    <button type="button" class="tab-button" onclick="switchCalcTab(event, 'calc-tab-interest')">Juros e Empréstimos</button>
+                    <button type="button" class="tab-button" onclick="switchCalcTab(event, 'calc-tab-forecast')">Previsão Contrabando</button>
+                  </nav>
+                  
+                  <!-- Tab 1: Profit Split -->
+                  <div id="calc-tab-split" class="tab-panel active" style="margin-top: 15px;">
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">
+                      Simula o rateio do faturamento de uma ação criminosa entre a hierarquia do sindicato (Boss, Underboss, Caporegime e Soldados).
+                    </p>
+                    
+                    <div class="form-group-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                      <div class="form-control-wrapper">
+                        <label class="form-label">Faturamento Bruto ($)</label>
+                        <input type="number" class="form-input" id="split-gross" value="150000" oninput="calcProfitSplit()">
+                      </div>
+                      <div class="form-control-wrapper">
+                        <label class="form-label">Custos Logísticos ($)</label>
+                        <input type="number" class="form-input" id="split-costs" value="20000" oninput="calcProfitSplit()">
+                      </div>
+                    </div>
+                    
+                    <h5 class="info-box-title" style="margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-percentage"></i> Percentual de Divisão (Rates)</h5>
+                    <div class="form-group-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                      <div class="form-control-wrapper">
+                        <label class="form-label" style="font-size: 0.65rem;">Boss (%)</label>
+                        <input type="number" class="form-input" id="split-pct-boss" value="35" min="0" max="100" oninput="calcProfitSplit()">
+                      </div>
+                      <div class="form-control-wrapper">
+                        <label class="form-label" style="font-size: 0.65rem;">Underboss (%)</label>
+                        <input type="number" class="form-input" id="split-pct-underboss" value="25" min="0" max="100" oninput="calcProfitSplit()">
+                      </div>
+                      <div class="form-control-wrapper">
+                        <label class="form-label" style="font-size: 0.65rem;">Capo (%)</label>
+                        <input type="number" class="form-input" id="split-pct-capo" value="20" min="0" max="100" oninput="calcProfitSplit()">
+                      </div>
+                      <div class="form-control-wrapper">
+                        <label class="form-label" style="font-size: 0.65rem;">Soldados (%)</label>
+                        <input type="number" class="form-input" id="split-pct-soldier" value="20" min="0" max="100" oninput="calcProfitSplit()">
+                      </div>
+                    </div>
+                    
+                    <div class="excel-formula-preview">
+                      <div class="formula-label">Fórmula do Excel Equivalente:</div>
+                      <code id="excel-formula-split-text">=SOMA(Faturamento - Custos) * Pct</code>
+                    </div>
+                    
+                    <div class="calc-results-card" style="margin-top: 15px;">
+                      <div class="result-row">
+                        <span>Líquido a Dividir:</span>
+                        <strong id="result-split-net" style="color: #4CAF50;">$130,000</strong>
+                      </div>
+                      <div class="result-row-divider"></div>
+                      <div class="result-row sub-row">
+                        <span>Fração Boss (35%):</span>
+                        <span id="result-split-boss" style="color: var(--text-primary); font-weight: 700;">$45,500</span>
+                      </div>
+                      <div class="result-row sub-row">
+                        <span>Fração Underboss (25%):</span>
+                        <span id="result-split-underboss" style="color: var(--text-primary); font-weight: 700;">$32,500</span>
+                      </div>
+                      <div class="result-row sub-row">
+                        <span>Fração Capo (20%):</span>
+                        <span id="result-split-capo" style="color: var(--text-primary); font-weight: 700;">$26,000</span>
+                      </div>
+                      <div class="result-row sub-row">
+                        <span>Fração Soldados (20%):</span>
+                        <span id="result-split-soldier" style="color: var(--text-primary); font-weight: 700;">$26,000</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Tab 2: Loans & Interest -->
+                  <div id="calc-tab-interest" class="tab-panel" style="margin-top: 15px;">
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">
+                      Calcula parcelas amortizadas para cobranças internas do sindicato ou agiotagem a taxas de juros recorrentes.
+                    </p>
+                    
+                    <div class="form-group-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                      <div class="form-control-wrapper">
+                        <label class="form-label">Principal / Empréstimo ($)</label>
+                        <input type="number" class="form-input" id="loan-principal" value="50000" oninput="calcLoanPMT()">
+                      </div>
+                      <div class="form-control-wrapper">
+                        <label class="form-label">Taxa Juros Mensal (%)</label>
+                        <input type="number" class="form-input" id="loan-rate" value="5" step="0.5" oninput="calcLoanPMT()">
+                      </div>
+                      <div class="form-control-wrapper">
+                        <label class="form-label">Prazo (Meses)</label>
+                        <input type="number" class="form-input" id="loan-months" value="12" min="1" oninput="calcLoanPMT()">
+                      </div>
+                    </div>
+                    
+                    <div class="excel-formula-preview">
+                      <div class="formula-label">Fórmula do Excel Equivalente:</div>
+                      <code id="excel-formula-loan-text">=PGTO(Taxa/100; Meses; -Principal)</code>
+                    </div>
+                    
+                    <div class="calc-results-card" style="margin-top: 15px;">
+                      <div class="result-row">
+                        <span>Valor da Parcela Mensal (Amortização):</span>
+                        <strong id="result-loan-pmt" style="color: var(--accent-color-hover); font-size: 1.1rem;">$5,640.24</strong>
+                      </div>
+                      <div class="result-row-divider"></div>
+                      <div class="result-row sub-row">
+                        <span>Total Pago ao Fim do Prazo:</span>
+                        <span id="result-loan-total" style="color: var(--text-primary); font-weight: 700;">$67,682.88</span>
+                      </div>
+                      <div class="result-row sub-row">
+                        <span>Total de Juros Acumulados:</span>
+                        <span id="result-loan-interest" style="color: #F44336; font-weight: 700;">$17,682.88</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Tab 3: Contraband Forecast -->
+                  <div id="calc-tab-forecast" class="tab-panel" style="margin-top: 15px;">
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">
+                      Projeta a estimativa de receita baseado na quantidade e preço por lote de contrabando de peças, pneus importados ou armamento leve.
+                    </p>
+                    
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.2);">
+                      <table class="custom-table" style="font-size: 0.75rem; margin-bottom: 0;">
+                        <thead>
+                          <tr>
+                            <th>Produto / Item</th>
+                            <th style="width: 100px;">Qtd (Lotes)</th>
+                            <th style="width: 110px;">Preço Unitário ($)</th>
+                            <th style="text-align: right; width: 100px;">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody id="forecast-table-body">
+                          <!-- Preenchido via JS -->
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <div class="excel-formula-preview" style="margin-top: 15px;">
+                      <div class="formula-label">Fórmula do Excel Equivalente:</div>
+                      <code id="excel-formula-forecast-text">=SOMARPRODUTO(Qtd_Array; Preço_Array)</code>
+                    </div>
+                    
+                    <div class="calc-results-card" style="margin-top: 15px;">
+                      <div class="result-row">
+                        <span>Faturamento Projetado Estimado:</span>
+                        <strong id="result-forecast-total" style="color: #4CAF50; font-size: 1.15rem;">$0.00</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

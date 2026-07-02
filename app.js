@@ -429,6 +429,7 @@ function renderModule(moduleName) {
       meetings: "Reuniões do Conselho",
       activities: "Histórico de Atividades",
       reports: "Exportação de Relatórios",
+      calculator: "Calculadora de Custos e Fórmulas",
       settings: "Parâmetros do Sistema"
     };
     headerTitle.innerText = nameMap[moduleName] || moduleName;
@@ -471,6 +472,9 @@ function renderModule(moduleName) {
       break;
     case "reports":
       renderReportPreview("members");
+      break;
+    case "calculator":
+      renderCalculator();
       break;
   }
 }
@@ -2491,4 +2495,182 @@ function resetDatabase() {
     renderModule("dashboard");
     showToast("Banco de dados restaurado", "error");
   }
+}
+
+// ==================== CALCULATOR ENGINE AND EXCEL FORMULAS ====================
+let calcExpression = "";
+
+window.pressCalcKey = function(key) {
+  const screen = document.getElementById("calc-screen");
+  if (!screen) return;
+  
+  if (key === "C") {
+    calcExpression = "";
+    screen.innerText = "0";
+  } else if (key === "Backspace") {
+    calcExpression = calcExpression.slice(0, -1);
+    screen.innerText = calcExpression || "0";
+  } else if (key === "=") {
+    try {
+      if (calcExpression) {
+        // Evaluate using safe math expressions logic
+        const cleanExpr = calcExpression.replace(/[^0-9+\-*/().]/g, "");
+        const result = new Function(`return ${cleanExpr}`)();
+        screen.innerText = result.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+        calcExpression = String(result);
+      }
+    } catch (e) {
+      screen.innerText = "Erro";
+      calcExpression = "";
+    }
+  } else {
+    if (screen.innerText === "0" && !isNaN(key)) {
+      calcExpression = key;
+    } else {
+      calcExpression += key;
+    }
+    screen.innerText = calcExpression;
+  }
+}
+
+// Keyboard support for pocket calculator
+document.addEventListener("keydown", (e) => {
+  const activeModule = document.querySelector(".module-panel.active");
+  if (!activeModule || activeModule.id !== "module-calculator") return;
+  
+  if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") {
+    return;
+  }
+  
+  const validKeys = ["0","1","2","3","4","5","6","7","8","9","+","-","*","/",".","=","Enter","Backspace","Escape"];
+  if (validKeys.includes(e.key)) {
+    e.preventDefault();
+    if (e.key === "Enter") pressCalcKey("=");
+    else if (e.key === "Escape") pressCalcKey("C");
+    else pressCalcKey(e.key);
+  }
+});
+
+window.switchCalcTab = function(event, tabId) {
+  const panel = event.target.closest(".tab-container");
+  if (!panel) return;
+  
+  panel.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+  panel.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  
+  event.target.classList.add("active");
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add("active");
+}
+
+// 1. Profit Split (Excel style sum & pct multiplier)
+window.calcProfitSplit = function() {
+  const gross = parseFloat(document.getElementById("split-gross").value) || 0;
+  const costs = parseFloat(document.getElementById("split-costs").value) || 0;
+  
+  const net = Math.max(0, gross - costs);
+  document.getElementById("result-split-net").innerText = "$" + net.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  
+  const pctBoss = parseFloat(document.getElementById("split-pct-boss").value) || 0;
+  const pctUnderboss = parseFloat(document.getElementById("split-pct-underboss").value) || 0;
+  const pctCapo = parseFloat(document.getElementById("split-pct-capo").value) || 0;
+  const pctSoldier = parseFloat(document.getElementById("split-pct-soldier").value) || 0;
+  
+  const valBoss = net * (pctBoss / 100);
+  const valUnderboss = net * (pctUnderboss / 100);
+  const valCapo = net * (pctCapo / 100);
+  const valSoldier = net * (pctSoldier / 100);
+  
+  document.getElementById("result-split-boss").innerText = "$" + valBoss.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  document.getElementById("result-split-underboss").innerText = "$" + valUnderboss.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  document.getElementById("result-split-capo").innerText = "$" + valCapo.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  document.getElementById("result-split-soldier").innerText = "$" + valSoldier.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  
+  document.getElementById("excel-formula-split-text").innerText = 
+    `=(SOMA(${gross}; -${costs})) * ${pctBoss}%  [Exemplo para o Boss]`;
+}
+
+// 2. Loans & Amortization (Excel style PMT)
+window.calcLoanPMT = function() {
+  const principal = parseFloat(document.getElementById("loan-principal").value) || 0;
+  const ratePerMonth = (parseFloat(document.getElementById("loan-rate").value) || 0) / 100;
+  const months = parseInt(document.getElementById("loan-months").value) || 1;
+  
+  let pmt = 0;
+  if (ratePerMonth === 0) {
+    pmt = principal / months;
+  } else {
+    pmt = (principal * ratePerMonth * Math.pow(1 + ratePerMonth, months)) / (Math.pow(1 + ratePerMonth, months) - 1);
+  }
+  
+  const totalPaid = pmt * months;
+  const totalInterest = Math.max(0, totalPaid - principal);
+  
+  document.getElementById("result-loan-pmt").innerText = "$" + pmt.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById("result-loan-total").innerText = "$" + totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById("result-loan-interest").innerText = "$" + totalInterest.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  
+  document.getElementById("excel-formula-loan-text").innerText = 
+    `=PGTO(${ratePerMonth * 100}%; ${months}; -${principal})`;
+}
+
+// 3. Contraband Forecast (Excel style SUMPRODUCT)
+let contrabandData = [
+  { item: "Pneus Semi-Slick (Lote)", quantity: 12, price: 1500 },
+  { item: "Turbinas Turbonetics (un)", quantity: 8, price: 2400 },
+  { item: "Kits Nitro NOS (Lote)", quantity: 5, price: 3800 },
+  { item: "Combustível Metanol (Galão)", quantity: 20, price: 600 }
+];
+
+function renderForecastTable() {
+  const tbody = document.getElementById("forecast-table-body");
+  if (!tbody) return;
+  
+  tbody.innerHTML = "";
+  contrabandData.forEach((row, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="font-weight: 600;">${row.item}</td>
+      <td>
+        <input type="number" class="form-input" style="padding: 4px 8px; font-size: 0.75rem; width: 70px; background: rgba(0,0,0,0.3);" value="${row.quantity}" oninput="updateForecastQty(${index}, this.value)">
+      </td>
+      <td>
+        <input type="number" class="form-input" style="padding: 4px 8px; font-size: 0.75rem; width: 90px; background: rgba(0,0,0,0.3);" value="${row.price}" oninput="updateForecastPrice(${index}, this.value)">
+      </td>
+      <td style="text-align: right; font-weight: 700; color: var(--text-primary);" id="forecast-row-total-${index}">
+        $${(row.quantity * row.price).toLocaleString()}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  calcContrabandForecast();
+}
+
+window.updateForecastQty = function(index, value) {
+  contrabandData[index].quantity = parseInt(value) || 0;
+  document.getElementById(`forecast-row-total-${index}`).innerText = "$" + (contrabandData[index].quantity * contrabandData[index].price).toLocaleString();
+  calcContrabandForecast();
+}
+
+window.updateForecastPrice = function(index, value) {
+  contrabandData[index].price = parseFloat(value) || 0;
+  document.getElementById(`forecast-row-total-${index}`).innerText = "$" + (contrabandData[index].quantity * contrabandData[index].price).toLocaleString();
+  calcContrabandForecast();
+}
+
+window.calcContrabandForecast = function() {
+  const total = contrabandData.reduce((acc, row) => acc + (row.quantity * row.price), 0);
+  document.getElementById("result-forecast-total").innerText = "$" + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  
+  const qArray = contrabandData.map(d => d.quantity).join(";");
+  const pArray = contrabandData.map(d => d.price).join(";");
+  document.getElementById("excel-formula-forecast-text").innerText = 
+    `=SOMARPRODUTO({${qArray}}; {${pArray}})`;
+}
+
+function renderCalculator() {
+  calcProfitSplit();
+  calcLoanPMT();
+  renderForecastTable();
 }

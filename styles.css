@@ -2162,3 +2162,138 @@ input:checked + .slider:before {
     grid-template-columns: 1fr;
   }
 }
+
+/* Pocket Calculator Styles */
+.pocket-calc-container {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  max-width: 320px;
+  margin: 10px auto;
+  box-shadow: var(--shadow-md), var(--shadow-accent);
+}
+
+.calc-screen {
+  background: #050507;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  height: 60px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 15px;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #4CAF50;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+  margin-bottom: 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.calc-screen::-webkit-scrollbar {
+  display: none;
+}
+
+.calc-keyboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.btn-calc {
+  height: 50px;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-calc:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-calc:active {
+  transform: translateY(1px);
+}
+
+.btn-calc.btn-zero {
+  grid-column: span 2;
+}
+
+.btn-calc.btn-equal {
+  background: var(--accent-gradient);
+  border: none;
+  grid-row: span 2;
+  height: 110px;
+  box-shadow: var(--shadow-accent);
+}
+
+.btn-calc.btn-equal:hover {
+  background: var(--accent-color-hover);
+  box-shadow: var(--shadow-accent-strong);
+}
+
+/* Excel Style Formula Preview */
+.excel-formula-preview {
+  margin-top: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid #217346; /* Excel green color */
+  border-radius: 4px;
+  padding: 10px 15px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #a2dbb1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.excel-formula-preview .formula-label {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calc-results-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calc-results-card .result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.calc-results-card .result-row.sub-row {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.calc-results-card .result-row-divider {
+  height: 1px;
+  background: var(--border-color);
+}
