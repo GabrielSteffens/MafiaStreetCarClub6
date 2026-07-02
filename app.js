@@ -449,6 +449,24 @@ function mapRecruitFromDb(r) {
   };
 }
 
+const emptyState = {
+  settings: {
+    clubName: "MAFIA - STREET CAR CLUB",
+    adminName: "Vito Scaletta",
+    adminAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150"
+  },
+  members: [],
+  vehicles: [],
+  equipment: [],
+  properties: [],
+  actions: [],
+  operations: [],
+  recruitment: [],
+  meetings: [],
+  activities: [],
+  transactions: []
+};
+
 // ==================== UTILITÁRIOS DO ESTADO ====================
 async function loadState() {
   // 1. Tenta carregar do localStorage primeiro para servir de cache inicial / migração
@@ -513,43 +531,39 @@ async function loadState() {
     const activities = resActivities.data;
     const transactions = resTransactions.data;
 
-    // 2. Se as configurações existem no Supabase, não houve erro nas configurações, e o banco tem dados cadastrados
-    const dbHasData = (!resMembers.error && members && members.length > 0) || 
-                      (!resVehicles.error && vehicles && vehicles.length > 0) || 
-                      (!resActions.error && actions && actions.length > 0);
-
-    if (settings && !resSettings.error && dbHasData) {
+    // 2. Se as configurações existem no Supabase e não houve erro nas configurações
+    if (settings && !resSettings.error) {
       state.settings = {
         clubName: settings.club_name,
         adminName: settings.admin_name,
         adminAvatar: settings.admin_avatar
       };
       
-      // Usa dados do banco apenas se a consulta não retornou erro. Caso contrário, mantém o local ou padrão
-      state.members = (!resMembers.error && members) ? members.map(mapMemberFromDb) : (localState?.members || defaultState.members);
-      state.vehicles = (!resVehicles.error && vehicles) ? vehicles : (localState?.vehicles || defaultState.vehicles);
-      state.equipment = (!resEquipment.error && equipment) ? equipment : (localState?.equipment || defaultState.equipment);
-      state.properties = (!resProperties.error && properties) ? properties : (localState?.properties || defaultState.properties);
-      state.actions = (!resActions.error && actions) ? actions : (localState?.actions || defaultState.actions);
-      state.operations = (!resOperations.error && operations) ? operations.map(mapOperationFromDb) : (localState?.operations || defaultState.operations);
-      state.recruitment = (!resRecruitment.error && recruitment) ? recruitment.map(mapRecruitFromDb) : (localState?.recruitment || defaultState.recruitment);
-      state.meetings = (!resMeetings.error && meetings) ? meetings : (localState?.meetings || defaultState.meetings);
-      state.activities = (!resActivities.error && activities) ? activities : (localState?.activities || defaultState.activities);
+      // Usa dados do banco apenas se a consulta não retornou erro. Caso contrário, mantém o local ou limpo
+      state.members = (!resMembers.error && members) ? members.map(mapMemberFromDb) : (localState?.members || []);
+      state.vehicles = (!resVehicles.error && vehicles) ? vehicles : (localState?.vehicles || []);
+      state.equipment = (!resEquipment.error && equipment) ? equipment : (localState?.equipment || []);
+      state.properties = (!resProperties.error && properties) ? properties : (localState?.properties || []);
+      state.actions = (!resActions.error && actions) ? actions : (localState?.actions || []);
+      state.operations = (!resOperations.error && operations) ? operations.map(mapOperationFromDb) : (localState?.operations || []);
+      state.recruitment = (!resRecruitment.error && recruitment) ? recruitment.map(mapRecruitFromDb) : (localState?.recruitment || []);
+      state.meetings = (!resMeetings.error && meetings) ? meetings : (localState?.meetings || []);
+      state.activities = (!resActivities.error && activities) ? activities : (localState?.activities || []);
       
       state.transactions = (!resTransactions.error && transactions) 
         ? transactions.map(t => ({ date: t.date, type: t.type, desc: t.desc_text, member: t.member, amount: Number(t.amount) }))
-        : (localState?.transactions || defaultState.transactions);
+        : (localState?.transactions || []);
     } else {
-      // 3. Se o banco está vazio ou houve erro nas permissões de leitura do settings:
+      // 3. Se o banco está totalmente vazio (sem nem a linha de settings cadastrada):
       // Se o usuário já tinha dados salvos localmente, usamos eles (migração para a nuvem!)
-      // Caso contrário, usamos os dados iniciais de fábrica (defaultState)
+      // Caso contrário, usamos o estado vazio absoluto (emptyState)
       if (localState && localState.settings && localState.settings.clubName) {
         state = localState;
       } else {
-        state = JSON.parse(JSON.stringify(defaultState));
+        state = JSON.parse(JSON.stringify(emptyState));
       }
       
-      // Apenas inicializa o banco se as permissões de gravação estiverem ativas e as tabelas criadas
+      // Apenas inicializa o banco se as permissões de gravação estiverem ativas
       if (!resSettings.error) {
         await saveState();
       }
@@ -559,7 +573,7 @@ async function loadState() {
     if (localState) {
       state = localState;
     } else {
-      state = JSON.parse(JSON.stringify(defaultState));
+      state = JSON.parse(JSON.stringify(emptyState));
     }
   }
 }
