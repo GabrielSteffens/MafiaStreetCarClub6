@@ -3426,6 +3426,9 @@ window.renderActions = function() {
       </td>
       <td>
         <div style="display: flex; gap: 4px;">
+          <button class="btn btn-secondary btn-sm" onclick="viewAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9; cursor: pointer;" title="Visualizar Detalhes">
+            <i class="fas fa-eye"></i>
+          </button>
           <button class="btn btn-secondary btn-sm" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
             <i class="fas fa-edit"></i>
           </button>
@@ -3451,6 +3454,44 @@ window.deleteAction = function(id) {
       showToast("Ação excluída com sucesso", "success");
     }
   }
+}
+
+window.viewAction = function(id) {
+  const act = state.actions.find(a => a.id === id);
+  if (!act) return;
+
+  const dateFormatted = act.date ? act.date.split("-").reverse().join("/") : "N/A";
+  const profitColor = act.profit >= 0 ? "#4CAF50" : "#F44336";
+
+  // Materials list
+  let materialsHTML = "";
+  if (act.materials && act.materials.length > 0) {
+    materialsHTML = act.materials.map(m => `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.04); border-radius: 4px; margin-bottom: 4px;">
+        <span style="font-size: 0.8rem;">${m.name}</span>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">${m.quantity}x</span>
+        <span style="font-size: 0.8rem; color: #F44336; font-family: monospace;">-$${(m.quantity * m.unitCost).toLocaleString('pt-BR')}</span>
+      </div>`).join("");
+  } else {
+    materialsHTML = `<p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Nenhum material registrado.</p>`;
+  }
+
+  // Participants
+  const participantsHTML = act.participants.map(p =>
+    `<span class="badge" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); font-size: 0.75rem; padding: 4px 10px; border-radius: 20px;">${p}</span>`
+  ).join("");
+
+  document.getElementById("view-act-id").innerText       = act.id;
+  document.getElementById("view-act-date").innerText     = dateFormatted;
+  document.getElementById("view-act-type").innerText     = act.type;
+  document.getElementById("view-act-revenue").innerText  = "$" + act.revenue.toLocaleString('pt-BR');
+  document.getElementById("view-act-cost").innerText     = "-$" + act.cost.toLocaleString('pt-BR');
+  document.getElementById("view-act-profit").innerText   = "$" + act.profit.toLocaleString('pt-BR');
+  document.getElementById("view-act-profit").style.color = profitColor;
+  document.getElementById("view-act-materials").innerHTML    = materialsHTML;
+  document.getElementById("view-act-participants").innerHTML = participantsHTML;
+
+  openModal("modal-view-action");
 }
 
 window.editAction = function(id) {
