@@ -721,6 +721,7 @@ function closeModal(modalId) {
     if (modalId === "modal-new-property") {
       const pin = document.getElementById("map-picker-pin");
       if (pin) pin.style.display = "none";
+      zoomMapPicker(1.0);
     }
   }
 }
@@ -2661,7 +2662,6 @@ window.pickPropertyCoords = function(event) {
     pin.style.display = "block";
   }
 }
-}
 
 // ==================== CONFIGURAÇÕES E SALVAMENTO ====================
 function saveSettings() {
@@ -2943,3 +2943,30 @@ document.addEventListener("keydown", (e) => {
     else pressFloatCalcKey(e.key);
   }
 });
+
+// ==================== MAPS ZOOM ENGINE ====================
+window.zoomMapPicker = function(scale) {
+  const container = document.getElementById("map-picker-scrollable");
+  if (container) {
+    if (scale === 1.0) {
+      container.style.width = "100%";
+      container.style.height = "100%";
+    } else {
+      container.style.width = (scale * 100) + "%";
+      container.style.height = (scale * 100) + "%";
+    }
+  }
+}
+
+window.zoomTacticalMap = function(scale) {
+  const container = document.getElementById("tactical-map-scrollable");
+  if (container) {
+    if (scale === 1.0) {
+      container.style.width = "100%";
+      container.style.height = "100%";
+    } else {
+      container.style.width = (scale * 100) + "%";
+      container.style.height = (scale * 100) + "%";
+    }
+  }
+}
