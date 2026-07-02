@@ -309,6 +309,17 @@ let state = {
 
 // ==================== UTILITÁRIOS DO ESTADO ====================
 async function loadState() {
+  // 1. Tenta carregar do localStorage primeiro para servir de cache inicial / migração
+  const localData = localStorage.getItem("mafia_dashboard_state_v1");
+  let localState = null;
+  if (localData) {
+    try {
+      localState = JSON.parse(localData);
+    } catch (e) {
+      console.error("Erro ao ler localStorage", e);
+    }
+  }
+
   try {
     const [
       { data: settings },
@@ -336,34 +347,41 @@ async function loadState() {
       supabaseClient.from("transactions").select("*")
     ]);
 
-    state.settings = settings ? {
-      clubName: settings.club_name,
-      adminName: settings.admin_name,
-      adminAvatar: settings.admin_avatar
-    } : defaultState.settings;
-
-    state.members = members && members.length > 0 ? members : defaultState.members;
-    state.vehicles = vehicles && vehicles.length > 0 ? vehicles : defaultState.vehicles;
-    state.equipment = equipment && equipment.length > 0 ? equipment : defaultState.equipment;
-    state.properties = properties && properties.length > 0 ? properties : defaultState.properties;
-    state.actions = actions && actions.length > 0 ? actions : defaultState.actions;
-    state.operations = operations && operations.length > 0 ? operations : defaultState.operations;
-    state.recruitment = recruitment && recruitment.length > 0 ? recruitment : defaultState.recruitment || [];
-    state.meetings = meetings && meetings.length > 0 ? meetings : defaultState.meetings;
-    state.activities = activities && activities.length > 0 ? activities : defaultState.activities;
-    
-    state.transactions = transactions && transactions.length > 0 
-      ? transactions.map(t => ({ date: t.date, type: t.type, desc: t.desc_text, member: t.member, amount: Number(t.amount) }))
-      : defaultState.transactions;
-
-    if (!settings) {
+    // 2. Se as configurações existem no Supabase, o banco está populado -> usa os dados do banco
+    if (settings) {
+      state.settings = {
+        clubName: settings.club_name,
+        adminName: settings.admin_name,
+        adminAvatar: settings.admin_avatar
+      };
+      state.members = members || [];
+      state.vehicles = vehicles || [];
+      state.equipment = equipment || [];
+      state.properties = properties || [];
+      state.actions = actions || [];
+      state.operations = operations || [];
+      state.recruitment = recruitment || [];
+      state.meetings = meetings || [];
+      state.activities = activities || [];
+      state.transactions = transactions && transactions.length > 0 
+        ? transactions.map(t => ({ date: t.date, type: t.type, desc: t.desc_text, member: t.member, amount: Number(t.amount) }))
+        : [];
+    } else {
+      // 3. Se o banco está vazio:
+      // Se o usuário já tinha dados salvos localmente, usamos eles (migração para a nuvem!)
+      // Caso contrário, usamos os dados iniciais de fábrica (defaultState)
+      if (localState && localState.settings && localState.settings.clubName) {
+        state = localState;
+      } else {
+        state = JSON.parse(JSON.stringify(defaultState));
+      }
+      // Salva no Supabase para inicializar o banco de dados com esses dados
       await saveState();
     }
   } catch (err) {
     console.error("Erro ao ler dados do Supabase, revertendo para localStorage/fábrica...", err);
-    const localData = localStorage.getItem("mafia_dashboard_state_v1");
-    if (localData) {
-      state = JSON.parse(localData);
+    if (localState) {
+      state = localState;
     } else {
       state = JSON.parse(JSON.stringify(defaultState));
     }
