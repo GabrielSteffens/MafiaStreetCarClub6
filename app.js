@@ -2985,7 +2985,6 @@ window.zoomTacticalMap = function(amountOrScale) {
   }
   
   container.style.width = (tacticalZoom * 100) + "%";
-  container.style.height = (tacticalZoom * 100) + "%";
   if (label) label.innerText = Math.round(tacticalZoom * 100) + "%";
 }
 
@@ -3003,7 +3002,6 @@ window.zoomMapPicker = function(amountOrScale) {
   }
   
   container.style.width = (pickerZoom * 100) + "%";
-  container.style.height = (pickerZoom * 100) + "%";
   if (label) label.innerText = Math.round(pickerZoom * 100) + "%";
 }
 
