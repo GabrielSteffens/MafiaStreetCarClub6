@@ -271,9 +271,9 @@ const defaultState = {
     { name: "Sede Central Little Italy", address: "Avenida Little Italy, 12, Empire Bay", type: "Sede do Clube", security: "Máxima Proteção", guards: "5 Soldados", storage: "Cofre de depósitos e documentos fiscais", photo: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&q=80&w=400", coords: { x: 50.5, y: 48.0 } }
   ],
   actions: [
-    { id: "ACT-001", type: "Roubo de Carga", cost: 1500, revenue: 15000, profit: 13500, date: "2026-07-01", participants: ["Vito Scaletta", "Joe Barbaro"] },
-    { id: "ACT-002", type: "Corrida Clandestina", cost: 500, revenue: 5000, profit: 4500, date: "2026-06-29", participants: ["Joe Barbaro"] },
-    { id: "ACT-003", type: "Contrabando", cost: 3000, revenue: 22000, profit: 19000, date: "2026-06-25", participants: ["Vito Scaletta", "Leo Galante"] }
+    { id: "ACT-001", type: "Roubo de Carga", cost: 1500, revenue: 15000, profit: 13500, date: "2026-07-01", participants: ["Vito Scaletta", "Joe Barbaro"], materials: [{ name: "Lockpick", quantity: 3, unitCost: 100 }, { name: "Kit de Reparo", quantity: 4, unitCost: 300 }] },
+    { id: "ACT-002", type: "Corrida Clandestina", cost: 500, revenue: 5000, profit: 4500, date: "2026-06-29", participants: ["Joe Barbaro"], materials: [{ name: "Galão de Combustível", quantity: 10, unitCost: 50 }] },
+    { id: "ACT-003", type: "Contrabando", cost: 3000, revenue: 22000, profit: 19000, date: "2026-06-25", participants: ["Vito Scaletta", "Leo Galante"], materials: [{ name: "Explosivo C4", quantity: 2, unitCost: 1500 }] }
   ],
   meetings: [
     { title: "Partilha de Divisas de Territórios", date: "2026-07-05", time: "20:00", location: "Sala de Reuniões da Sede", participants: "Vito, Joe, Salieri, Henry", attendance: "Scheduled", notes: "Análise dos relatórios de taxas das docas e postos de combustível." },
@@ -2727,7 +2727,6 @@ function initFormSubmissions() {
       
       const type = document.getElementById("act-type").value;
       const revenue = parseFloat(document.getElementById("act-revenue").value) || 0;
-      const cost = parseFloat(document.getElementById("act-cost").value) || 0;
       const date = document.getElementById("act-date").value;
       
       const checkboxes = document.querySelectorAll('input[name="act-member"]:checked');
@@ -2738,14 +2737,29 @@ function initFormSubmissions() {
         return;
       }
       
+      // Sum up materials cost and collect them in an array
+      const materials = [];
+      let totalCost = 0;
+      const rows = document.querySelectorAll("#act-materials-rows .material-row");
+      rows.forEach(row => {
+        const mName = row.querySelector(".material-name").value.trim();
+        const mQty = parseFloat(row.querySelector(".material-qty").value) || 0;
+        const mUnit = parseFloat(row.querySelector(".material-unit-cost").value) || 0;
+        if (mName && mQty > 0) {
+          materials.push({ name: mName, quantity: mQty, unitCost: mUnit });
+          totalCost += mQty * mUnit;
+        }
+      });
+      
       const newAct = {
         id: "ACT-" + Date.now().toString().slice(-6),
         type,
         revenue,
-        cost,
-        profit: revenue - cost,
+        cost: totalCost,
+        profit: revenue - totalCost,
         date,
-        participants: selectedParticipants
+        participants: selectedParticipants,
+        materials: materials
       };
       
       if (!state.actions) state.actions = [];
@@ -3178,6 +3192,77 @@ function makeMapInteractive(parentId, zoomFnName) {
 }
 
 // ==================== RENDERING ACTIONS MODULE ====================
+const defaultMaterialCosts = {
+  "Lockpick": 100,
+  "Kit de Reparo": 300,
+  "Munição de Pistola (un.)": 5,
+  "Munição de Fuzil (un.)": 15,
+  "Explosivo C4": 1500,
+  "Galão de Combustível": 50,
+  "Máscara / Disfarce": 30,
+  "Kit Médico de Emergência": 200
+};
+
+window.autoFillMaterialCost = function(input) {
+  const row = input.closest(".material-row");
+  if (!row) return;
+  const name = input.value.trim();
+  const costInput = row.querySelector(".material-unit-cost");
+  if (costInput && defaultMaterialCosts[name] !== undefined) {
+    costInput.value = defaultMaterialCosts[name];
+  }
+  calcActionModalProfit();
+}
+
+window.addActionMaterialRow = function(name = "", qty = 1, unitCost = 0) {
+  const container = document.getElementById("act-materials-rows");
+  if (!container) return;
+  
+  const row = document.createElement("div");
+  row.className = "material-row";
+  row.style.display = "grid";
+  row.style.gridTemplateColumns = "2.5fr 1fr 1.5fr auto";
+  row.style.gap = "8px";
+  row.style.alignItems = "center";
+  row.style.marginBottom = "4px";
+  
+  row.innerHTML = `
+    <input type="text" class="form-input material-name" required placeholder="Item / Material" list="materials-list-autocomplete" value="${name}" onchange="autoFillMaterialCost(this)" style="padding: 6px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.3);">
+    <input type="number" class="form-input material-qty" required min="1" placeholder="Qtd" value="${qty}" oninput="calcActionModalProfit()" style="padding: 6px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.3);">
+    <input type="number" class="form-input material-unit-cost" required min="0" placeholder="Unitário ($)" value="${unitCost}" oninput="calcActionModalProfit()" style="padding: 6px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.3);">
+    <button type="button" class="btn btn-danger" onclick="this.closest('.material-row').remove(); calcActionModalProfit();" style="padding: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: #c62828; color: #fff; cursor: pointer; border: none; border-radius: 4px;"><i class="fas fa-trash"></i></button>
+  `;
+  container.appendChild(row);
+  calcActionModalProfit();
+}
+
+window.calcActionModalProfit = function() {
+  const rev = parseFloat(document.getElementById("act-revenue").value) || 0;
+  
+  let totalCost = 0;
+  const rows = document.querySelectorAll("#act-materials-rows .material-row");
+  rows.forEach(row => {
+    const qty = parseFloat(row.querySelector(".material-qty").value) || 0;
+    const unit = parseFloat(row.querySelector(".material-unit-cost").value) || 0;
+    totalCost += qty * unit;
+  });
+  
+  const profit = rev - totalCost;
+  
+  const costEl = document.getElementById("act-cost-display");
+  const profitEl = document.getElementById("act-profit-display");
+  
+  if (costEl) costEl.value = "$" + totalCost.toLocaleString('pt-BR');
+  if (profitEl) {
+    profitEl.value = "$" + profit.toLocaleString('pt-BR');
+    if (profit >= 0) {
+      profitEl.style.color = "#4CAF50";
+    } else {
+      profitEl.style.color = "#F44336";
+    }
+  }
+}
+
 window.renderActions = function() {
   const tableBody = document.getElementById("actions-table-body");
   if (!tableBody) return;
@@ -3229,10 +3314,21 @@ window.renderActions = function() {
     // Formatar data
     const dateFormatted = act.date ? act.date.split("-").reverse().join("/") : "N/A";
     
+    // List materials details
+    let materialsText = "";
+    if (act.materials && act.materials.length > 0) {
+      materialsText = act.materials.map(m => `${m.quantity}x ${m.name}`).join(", ");
+    } else {
+      materialsText = "Nenhum material";
+    }
+    
     row.innerHTML = `
       <td>${dateFormatted}</td>
       <td><strong>${act.type}</strong></td>
-      <td style="color: #F44336; font-family: monospace;">-$${act.cost.toLocaleString('pt-BR')}</td>
+      <td style="color: #F44336; font-family: monospace;" title="${materialsText}">
+        -$${act.cost.toLocaleString('pt-BR')}
+        <span style="display: block; font-size: 0.65rem; color: var(--text-muted); font-weight: normal; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${materialsText}</span>
+      </td>
       <td style="color: #4CAF50; font-family: monospace;">+$${act.revenue.toLocaleString('pt-BR')}</td>
       <td style="font-weight: 700; color: ${act.profit >= 0 ? '#4CAF50' : '#F44336'}; font-family: monospace;">$${act.profit.toLocaleString('pt-BR')}</td>
       <td>
@@ -3256,25 +3352,10 @@ window.deleteAction = function(id) {
     if (actionIndex !== -1) {
       const act = state.actions[actionIndex];
       state.actions.splice(actionIndex, 1);
-      logActivity(`Excluiu ação de campo: ${act.type} de ${act.date}`, "Operação");
+      logActivity("Excluiu ação de campo: " + act.type + " de " + act.date, "Operação");
       saveState();
       renderActions();
       showToast("Ação excluída com sucesso", "success");
-    }
-  }
-}
-
-window.calcActionModalProfit = function() {
-  const rev = parseFloat(document.getElementById("act-revenue").value) || 0;
-  const cost = parseFloat(document.getElementById("act-cost").value) || 0;
-  const profit = rev - cost;
-  const display = document.getElementById("act-profit-display");
-  if (display) {
-    display.value = "$" + profit.toLocaleString('pt-BR');
-    if (profit >= 0) {
-      display.style.color = "#4CAF50";
-    } else {
-      display.style.color = "#F44336";
     }
   }
 }
@@ -3289,6 +3370,15 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("act-date").value = new Date().toISOString().slice(0, 10);
       document.getElementById("act-profit-display").value = "$0";
       document.getElementById("act-profit-display").style.color = "#4CAF50";
+      document.getElementById("act-cost-display").value = "$0";
+      
+      // Limpar e preencher linhas de materiais com uma linha inicial padrão
+      const rowsContainer = document.getElementById("act-materials-rows");
+      if (rowsContainer) {
+        rowsContainer.innerHTML = "";
+        // Adiciona a primeira linha em branco para guiar o usuário
+        addActionMaterialRow("", 1, 0);
+      }
       
       // Carregar lista de participantes (apenas membros ativos)
       const container = document.getElementById("act-participants-checkboxes");

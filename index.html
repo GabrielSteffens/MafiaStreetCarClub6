@@ -1257,20 +1257,42 @@
             </select>
           </div>
 
-          <div class="form-group-grid" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-            <div class="form-control-wrapper">
-              <label class="form-label">Valor Ganho ($) *</label>
-              <input type="number" class="form-input" id="act-revenue" required min="0" placeholder="Faturamento Bruto" oninput="calcActionModalProfit()">
-            </div>
-            <div class="form-control-wrapper">
-              <label class="form-label">Material Gasto ($) *</label>
-              <input type="number" class="form-input" id="act-cost" required min="0" placeholder="Custos / Despesas" oninput="calcActionModalProfit()">
-            </div>
+          <div class="form-control-wrapper" style="margin-bottom: 15px;">
+            <label class="form-label">Valor Ganho ($) *</label>
+            <input type="number" class="form-input" id="act-revenue" required min="0" placeholder="Faturamento Bruto" oninput="calcActionModalProfit()">
           </div>
 
+          <!-- Materiais Gastos Section -->
           <div class="form-control-wrapper" style="margin-bottom: 15px;">
-            <label class="form-label">Lucro Estimado ($)</label>
-            <input type="text" class="form-input" id="act-profit-display" readonly disabled value="$0" style="background: rgba(0,0,0,0.25); color: #4CAF50; font-weight: 700;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label class="form-label" style="margin-bottom: 0;">Materiais Consumidos / Gastos</label>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addActionMaterialRow()" style="padding: 2px 8px; font-size: 0.65rem; background: var(--border-color); border: 1px solid var(--border-color-hover); color: var(--text-primary); cursor: pointer;"><i class="fas fa-plus"></i> Add Material</button>
+            </div>
+            <div id="act-materials-rows" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
+              <!-- Linhas de materiais carregadas via JS -->
+            </div>
+            <!-- Datalist para autocomplete -->
+            <datalist id="materials-list-autocomplete">
+              <option value="Lockpick"></option>
+              <option value="Kit de Reparo"></option>
+              <option value="Munição de Pistola (un.)"></option>
+              <option value="Munição de Fuzil (un.)"></option>
+              <option value="Explosivo C4"></option>
+              <option value="Galão de Combustível"></option>
+              <option value="Máscara / Disfarce"></option>
+              <option value="Kit Médico de Emergência"></option>
+            </datalist>
+          </div>
+
+          <div class="form-group-grid" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div class="form-control-wrapper">
+              <label class="form-label">Total Gasto em Materiais ($)</label>
+              <input type="text" class="form-input" id="act-cost-display" readonly disabled value="$0" style="background: rgba(0,0,0,0.2); font-weight: 700; color: var(--text-secondary);">
+            </div>
+            <div class="form-control-wrapper">
+              <label class="form-label">Lucro Líquido ($)</label>
+              <input type="text" class="form-input" id="act-profit-display" readonly disabled value="$0" style="background: rgba(0,0,0,0.25); color: #4CAF50; font-weight: 700;">
+            </div>
           </div>
 
           <div class="form-control-wrapper" style="margin-bottom: 15px;">
