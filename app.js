@@ -905,9 +905,13 @@ function renderMemberDetail() {
       </div>
       
       <div class="profile-hero-info">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 10px; flex-wrap: wrap;">
           <div class="profile-hero-rank">${rankTranslations[m.rank]}</div>
-          <button class="btn btn-primary btn-sm" onclick="editMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: linear-gradient(135deg, #b71c1c 0%, #5f0909 100%);"><i class="fas fa-edit"></i> Editar Dossiê</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" onclick="toggleMemberStatus('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem;"><i class="fas ${m.status === 'Active' ? 'fa-user-slash' : 'fa-user-check'}"></i> ${m.status === 'Active' ? 'Desativar' : 'Ativar'}</button>
+            <button class="btn btn-primary btn-sm" onclick="editMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: linear-gradient(135deg, #b71c1c 0%, #5f0909 100%);"><i class="fas fa-edit"></i> Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: #c62828;"><i class="fas fa-trash-alt"></i> Excluir</button>
+          </div>
         </div>
         <div class="profile-hero-name">${m.fullName}</div>
         <div class="profile-hero-nickname">"${m.nickname || 'Sem apelido'}"</div>
@@ -1199,6 +1203,48 @@ window.editMemberDossier = function(memberId) {
       });
     } else {
       addFormVehicleRow();
+    }
+  }
+}
+
+window.toggleMemberStatus = function(memberId) {
+  const m = state.members.find(member => member.id === memberId);
+  if (!m) return;
+  
+  const oldStatus = m.status;
+  m.status = (oldStatus === "Active" ? "Inactive" : "Active");
+  m.lastActivity = new Date().toISOString().slice(0, 16).replace("T", " ");
+  
+  const statusLabel = m.status === "Active" ? "Ativo" : "Inativo";
+  m.history.unshift({
+    time: new Date().toISOString().slice(0, 16).replace("T", " "),
+    desc: `Status de matrícula alterado para: <strong>${statusLabel}</strong>.`
+  });
+  
+  logActivity(`Status de filiação de ${m.fullName} modificado para ${statusLabel}`, "Membro");
+  saveState();
+  renderMembersList();
+  showToast(`Status de ${m.fullName} alterado para ${statusLabel}`, "success");
+}
+
+window.deleteMemberDossier = function(memberId) {
+  const m = state.members.find(member => member.id === memberId);
+  if (!m) return;
+  
+  if (confirm(`Tem certeza que deseja excluir permanentemente o dossiê e registros de: ${m.fullName}?`)) {
+    const idx = state.members.findIndex(member => member.id === memberId);
+    if (idx !== -1) {
+      state.members.splice(idx, 1);
+      
+      // Se o membro excluído for o ativo selecionado, focar em outro membro restante
+      if (activeMemberId === memberId) {
+        activeMemberId = state.members.length > 0 ? state.members[0].id : null;
+      }
+      
+      logActivity(`Dossiê do membro ${m.fullName} excluído permanentemente do sindicato.`, "Membro");
+      saveState();
+      renderMembersList();
+      showToast(`Dossiê de ${m.fullName} removido do sistema`, "error");
     }
   }
 }
