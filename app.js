@@ -373,6 +373,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Aplicar dados visuais iniciais na interface
   applySettingsUI();
 
+  // Inicializar interações avançadas de arrastar/zoom nos mapas
+  initMapsDraggableAndWheelZoom();
+
   // Iniciar na aba Painel (Dashboard)
   renderModule("dashboard");
 });
@@ -2944,29 +2947,122 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ==================== MAPS ZOOM ENGINE ====================
-window.zoomMapPicker = function(scale) {
+// ==================== MAPS DRAG-PAN & INFINITE ZOOM ENGINE ====================
+let tacticalZoom = 1.0;
+let pickerZoom = 1.0;
+let isMapFullscreen = false;
+
+window.zoomTacticalMap = function(amountOrScale) {
+  const container = document.getElementById("tactical-map-scrollable");
+  const label = document.getElementById("tactical-zoom-label");
+  if (!container) return;
+  
+  if (amountOrScale === 1) {
+    tacticalZoom = Math.min(6.0, tacticalZoom + 0.25);
+  } else if (amountOrScale === -1) {
+    tacticalZoom = Math.max(1.0, tacticalZoom - 0.25);
+  } else {
+    tacticalZoom = amountOrScale;
+  }
+  
+  container.style.width = (tacticalZoom * 100) + "%";
+  container.style.height = (tacticalZoom * 100) + "%";
+  if (label) label.innerText = Math.round(tacticalZoom * 100) + "%";
+}
+
+window.zoomMapPicker = function(amountOrScale) {
   const container = document.getElementById("map-picker-scrollable");
-  if (container) {
-    if (scale === 1.0) {
-      container.style.width = "100%";
-      container.style.height = "100%";
+  const label = document.getElementById("picker-zoom-label");
+  if (!container) return;
+  
+  if (amountOrScale === 1) {
+    pickerZoom = Math.min(6.0, pickerZoom + 0.25);
+  } else if (amountOrScale === -1) {
+    pickerZoom = Math.max(1.0, pickerZoom - 0.25);
+  } else {
+    pickerZoom = amountOrScale;
+  }
+  
+  container.style.width = (pickerZoom * 100) + "%";
+  container.style.height = (pickerZoom * 100) + "%";
+  if (label) label.innerText = Math.round(pickerZoom * 100) + "%";
+}
+
+window.toggleTacticalMapFullscreen = function() {
+  const container = document.getElementById("tactical-map-container");
+  const icon = document.getElementById("fullscreen-map-icon");
+  if (container && icon) {
+    isMapFullscreen = !isMapFullscreen;
+    if (isMapFullscreen) {
+      container.classList.add("fullscreen");
+      container.style.height = "100vh";
+      icon.className = "fas fa-compress";
     } else {
-      container.style.width = (scale * 100) + "%";
-      container.style.height = (scale * 100) + "%";
+      container.classList.remove("fullscreen");
+      container.style.height = "500px";
+      icon.className = "fas fa-expand";
     }
   }
 }
 
-window.zoomTacticalMap = function(scale) {
-  const container = document.getElementById("tactical-map-scrollable");
-  if (container) {
-    if (scale === 1.0) {
-      container.style.width = "100%";
-      container.style.height = "100%";
+function initMapsDraggableAndWheelZoom() {
+  makeMapInteractive("tactical-map-container", "zoomTacticalMap");
+  makeMapInteractive("map-picker-wrapper", "zoomMapPicker");
+}
+
+function makeMapInteractive(parentId, zoomFnName) {
+  const parent = document.getElementById(parentId);
+  if (!parent) return;
+  
+  let isDown = false;
+  let startX;
+  let startY;
+  let scrollLeft;
+  let scrollTop;
+  
+  parent.style.cursor = "grab";
+  
+  // Arrastar mapa com o clique do mouse
+  parent.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return; // Apenas clique esquerdo
+    if (e.target.closest(".map-zoom-controls") || e.target.closest(".map-blip") || e.target.closest("#map-picker-pin")) return;
+    
+    isDown = true;
+    parent.style.cursor = "grabbing";
+    startX = e.pageX - parent.offsetLeft;
+    startY = e.pageY - parent.offsetTop;
+    scrollLeft = parent.scrollLeft;
+    scrollTop = parent.scrollTop;
+  });
+  
+  parent.addEventListener("mouseleave", () => {
+    isDown = false;
+    parent.style.cursor = "grab";
+  });
+  
+  parent.addEventListener("mouseup", () => {
+    isDown = false;
+    parent.style.cursor = "grab";
+  });
+  
+  parent.addEventListener("mousemove", (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - parent.offsetLeft;
+    const y = e.pageY - parent.offsetTop;
+    const walkX = (x - startX) * 1.5; // Velocidade de arrasto
+    const walkY = (y - startY) * 1.5;
+    parent.scrollLeft = scrollLeft - walkX;
+    parent.scrollTop = scrollTop - walkY;
+  });
+  
+  // Zoom com a roda do mouse (Scroll Wheel)
+  parent.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      window[zoomFnName](1);
     } else {
-      container.style.width = (scale * 100) + "%";
-      container.style.height = (scale * 100) + "%";
+      window[zoomFnName](-1);
     }
-  }
+  }, { passive: false });
 }
