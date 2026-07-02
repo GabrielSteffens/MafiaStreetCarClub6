@@ -308,6 +308,148 @@ let state = {
 };
 
 // ==================== UTILITÁRIOS DO ESTADO ====================
+// Helper mapping functions to translate JS camelCase to Postgres snake_case and vice-versa
+function mapMemberToDb(m) {
+  if (!m) return null;
+  return {
+    id: m.id,
+    full_name: m.fullName,
+    nickname: m.nickname,
+    phone: m.phone,
+    discord: m.discord,
+    email: m.email,
+    dob: m.dob,
+    address: m.address,
+    rank: m.rank,
+    recruiter: m.recruiter,
+    join_date: m.joinDate,
+    trust: m.trust,
+    status: m.status,
+    photo: m.photo,
+    notes: m.notes,
+    last_activity: m.lastActivity,
+    documents: m.documents,
+    vehicles: m.vehicles,
+    warnings: m.warnings,
+    history: m.history
+  };
+}
+
+function mapMemberFromDb(m) {
+  if (!m) return null;
+  return {
+    id: m.id,
+    fullName: m.full_name,
+    nickname: m.nickname,
+    phone: m.phone,
+    discord: m.discord,
+    email: m.email,
+    dob: m.dob,
+    address: m.address,
+    rank: m.rank,
+    recruiter: m.recruiter,
+    joinDate: m.join_date,
+    trust: m.trust,
+    status: m.status,
+    photo: m.photo,
+    notes: m.notes,
+    lastActivity: m.last_activity,
+    documents: m.documents || [],
+    vehicles: m.vehicles || [],
+    warnings: m.warnings || [],
+    history: m.history || []
+  };
+}
+
+function mapOperationToDb(op) {
+  if (!op) return null;
+  return {
+    id: op.id,
+    title: op.title,
+    target_name: op.targetName,
+    target_alias: op.targetAlias,
+    target_phone: op.targetPhone,
+    target_age: op.targetAge,
+    target_location: op.targetLocation,
+    target_photo: op.targetPhoto,
+    reason: op.reason,
+    threat_level: op.threatLevel,
+    assigned_team: op.assignedTeam,
+    assigned_vehicles: op.assignedVehicles,
+    assigned_equipment: op.assignedEquipment,
+    status: op.status,
+    timeline: op.timeline,
+    media: op.media
+  };
+}
+
+function mapOperationFromDb(op) {
+  if (!op) return null;
+  return {
+    id: op.id,
+    title: op.title,
+    targetName: op.target_name,
+    targetAlias: op.target_alias,
+    targetPhone: op.target_phone,
+    targetAge: op.target_age,
+    targetLocation: op.target_location,
+    targetPhoto: op.target_photo,
+    reason: op.reason,
+    threatLevel: op.threat_level,
+    assignedTeam: op.assigned_team || [],
+    assignedVehicles: op.assigned_vehicles || [],
+    assignedEquipment: op.assigned_equipment || [],
+    status: op.status,
+    timeline: op.timeline || [],
+    media: op.media || []
+  };
+}
+
+function mapRecruitToDb(r) {
+  if (!r) return null;
+  return {
+    id: r.id,
+    full_name: r.fullName,
+    nickname: r.nickname,
+    phone: r.phone,
+    discord: r.discord,
+    email: r.email,
+    dob: r.dob,
+    address: r.address,
+    trust: r.trust,
+    status: r.status,
+    photo: r.photo,
+    notes: r.notes,
+    applied_date: r.appliedDate,
+    stage: r.stage,
+    physical_eval: r.physicalEval,
+    history: r.history
+  };
+}
+
+function mapRecruitFromDb(r) {
+  if (!r) return null;
+  return {
+    id: r.id,
+    fullName: r.full_name,
+    nickname: r.nickname,
+    phone: r.phone,
+    discord: r.discord,
+    email: r.email,
+    dob: r.dob,
+    address: r.address,
+    trust: r.trust,
+    status: r.status,
+    photo: r.photo,
+    notes: r.notes,
+    appliedDate: r.applied_date,
+    stage: r.stage,
+    physicalEval: r.physical_eval || {},
+    history: r.history || []
+  };
+}
+
+// ==================== UTILITÁRIOS DO ESTADO ====================
 async function loadState() {
   // 1. Tenta carregar do localStorage primeiro para servir de cache inicial / migração
   const localData = localStorage.getItem("mafia_dashboard_state_v1");
@@ -384,13 +526,13 @@ async function loadState() {
       };
       
       // Usa dados do banco apenas se a consulta não retornou erro. Caso contrário, mantém o local ou padrão
-      state.members = (!resMembers.error && members) ? members : (localState?.members || defaultState.members);
+      state.members = (!resMembers.error && members) ? members.map(mapMemberFromDb) : (localState?.members || defaultState.members);
       state.vehicles = (!resVehicles.error && vehicles) ? vehicles : (localState?.vehicles || defaultState.vehicles);
       state.equipment = (!resEquipment.error && equipment) ? equipment : (localState?.equipment || defaultState.equipment);
       state.properties = (!resProperties.error && properties) ? properties : (localState?.properties || defaultState.properties);
       state.actions = (!resActions.error && actions) ? actions : (localState?.actions || defaultState.actions);
-      state.operations = (!resOperations.error && operations) ? operations : (localState?.operations || defaultState.operations);
-      state.recruitment = (!resRecruitment.error && recruitment) ? recruitment : (localState?.recruitment || defaultState.recruitment);
+      state.operations = (!resOperations.error && operations) ? operations.map(mapOperationFromDb) : (localState?.operations || defaultState.operations);
+      state.recruitment = (!resRecruitment.error && recruitment) ? recruitment.map(mapRecruitFromDb) : (localState?.recruitment || defaultState.recruitment);
       state.meetings = (!resMeetings.error && meetings) ? meetings : (localState?.meetings || defaultState.meetings);
       state.activities = (!resActivities.error && activities) ? activities : (localState?.activities || defaultState.activities);
       
@@ -437,7 +579,8 @@ async function saveState(onlyTable = null) {
     }
 
     if (!onlyTable || onlyTable === "members") {
-      const { error } = await supabaseClient.from("members").upsert(state.members);
+      const dbMembers = state.members.map(mapMemberToDb);
+      const { error } = await supabaseClient.from("members").upsert(dbMembers);
       if (error) console.error("Supabase upsert members error:", error);
     }
 
@@ -462,12 +605,14 @@ async function saveState(onlyTable = null) {
     }
 
     if (!onlyTable || onlyTable === "operations") {
-      const { error } = await supabaseClient.from("operations").upsert(state.operations);
+      const dbOps = state.operations.map(mapOperationToDb);
+      const { error } = await supabaseClient.from("operations").upsert(dbOps);
       if (error) console.error("Supabase upsert operations error:", error);
     }
 
     if (!onlyTable || onlyTable === "recruitment") {
-      const { error } = await supabaseClient.from("recruitment").upsert(state.recruitment);
+      const dbRecruits = state.recruitment.map(mapRecruitToDb);
+      const { error } = await supabaseClient.from("recruitment").upsert(dbRecruits);
       if (error) console.error("Supabase upsert recruitment error:", error);
     }
 
