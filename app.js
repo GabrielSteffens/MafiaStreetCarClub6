@@ -944,6 +944,10 @@ function renderMemberDetail() {
             <span class="profile-hero-stat-label">Lealdade</span>
             <span class="profile-hero-stat-value" style="color: ${m.trust >= 80 ? '#4CAF50' : m.trust >= 50 ? '#FF9800' : '#F44336'};">${m.trust}%</span>
           </div>
+          <div class="profile-hero-stat">
+            <span class="profile-hero-stat-label">Advertências</span>
+            <span class="profile-hero-stat-value" style="color: ${m.warnings && m.warnings.length > 0 ? '#F44336' : 'var(--text-secondary)'};">${m.warnings ? m.warnings.length : 0}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1028,6 +1032,40 @@ function renderMemberDetail() {
       
       <!-- 4. WARNINGS TAB -->
       <div id="tab-warnings" class="tab-panel" style="margin-top: 15px;">
+        <!-- Botão/Formulário para Aplicar Nova Advertência -->
+        <div class="premium-card" style="margin-bottom: 15px; border: 1px dashed rgba(183, 28, 28, 0.4); background: rgba(183, 28, 28, 0.02);">
+          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleAddWarningForm()">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-color-hover);"><i class="fas fa-exclamation-triangle"></i> Aplicar Nova Advertência / Punição</span>
+            <i class="fas fa-chevron-down" id="add-warning-chevron" style="transition: transform 0.2s;"></i>
+          </div>
+          <div id="add-warning-form-container" style="display: none; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <form id="form-add-warning" onsubmit="submitAddWarning(event, '${m.id}')">
+              <div class="form-group-grid" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div class="form-control-wrapper">
+                  <label class="form-label" style="font-size: 0.65rem;">Infração / Título *</label>
+                  <input type="text" class="form-input" id="w-title-input" required placeholder="Ex: Direção perigosa perto de esconderijo" style="padding: 6px 10px; font-size: 0.8rem; background: rgba(0,0,0,0.3);">
+                </div>
+                <div class="form-control-wrapper">
+                  <label class="form-label" style="font-size: 0.65rem;">Gravidade *</label>
+                  <select class="form-select" id="w-level-input" style="padding: 6px 10px; font-size: 0.8rem; background: rgba(0,0,0,0.3);">
+                    <option value="Low">Baixo</option>
+                    <option value="Medium">Médio</option>
+                    <option value="High">Alto</option>
+                    <option value="Critical">Crítico</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-control-wrapper" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 0.65rem;">Descrição do Ocorrido / Motivo *</label>
+                <textarea class="form-textarea" id="w-reason-input" required placeholder="Descreva de forma concisa o motivo desta advertência oficial." style="padding: 6px 10px; font-size: 0.8rem; height: 60px; background: rgba(0,0,0,0.3);"></textarea>
+              </div>
+              <div style="text-align: right;">
+                <button type="submit" class="btn btn-danger btn-sm" style="padding: 6px 12px; font-size: 0.75rem; background: #c62828;"><i class="fas fa-gavel"></i> Registrar Ocorrência</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         <div class="warnings-list" id="member-warnings-list">
           <!-- Avisos -->
         </div>
@@ -1304,6 +1342,75 @@ window.switchMemberTab = function(event, tabId) {
   event.target.classList.add("active");
   const target = document.getElementById(tabId);
   if (target) target.classList.add("active");
+}
+
+window.toggleAddWarningForm = function() {
+  const container = document.getElementById("add-warning-form-container");
+  const chevron = document.getElementById("add-warning-chevron");
+  if (container && chevron) {
+    if (container.style.display === "none") {
+      container.style.display = "block";
+      chevron.style.transform = "rotate(180deg)";
+    } else {
+      container.style.display = "none";
+      chevron.style.transform = "rotate(0deg)";
+    }
+  }
+}
+
+window.submitAddWarning = function(event, memberId) {
+  event.preventDefault();
+  
+  const m = state.members.find(member => member.id === memberId);
+  if (!m) return;
+  
+  const title = document.getElementById("w-title-input").value;
+  const level = document.getElementById("w-level-input").value;
+  const text = document.getElementById("w-reason-input").value;
+  
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10);
+  
+  const newWarning = {
+    id: "WRN-" + (m.warnings ? m.warnings.length + 101 : 101),
+    title,
+    date: dateStr,
+    text,
+    level,
+    admin: state.settings.adminName || "Vito Scaletta"
+  };
+  
+  if (!m.warnings) m.warnings = [];
+  m.warnings.push(newWarning);
+  
+  // Deduzir alguns pontos de lealdade caso a advertência seja crítica/alta
+  let trustPenalty = 0;
+  if (level === "Critical") trustPenalty = 20;
+  else if (level === "High") trustPenalty = 10;
+  else if (level === "Medium") trustPenalty = 5;
+  
+  m.trust = Math.max(0, m.trust - trustPenalty);
+  m.lastActivity = now.toISOString().slice(0, 16).replace("T", " ");
+  
+  const threatLabels = { Low: "Baixo", Medium: "Médio", High: "Alto", Critical: "Crítico" };
+  m.history.unshift({
+    time: now.toISOString().slice(0, 16).replace("T", " "),
+    desc: `Recebeu advertência oficial: <strong>${title}</strong> (${threatLabels[level]}).`
+  });
+  
+  logActivity(`Advertência aplicada a ${m.fullName}: ${title} [${threatLabels[level]}]`, "Membro");
+  saveState();
+  
+  // Re-renderizar o dossiê mantendo a aba Avisos aberta
+  renderMembersList();
+  
+  // Reabrir a aba de avisos
+  const tabBtn = document.querySelector(".tab-button[onclick*='tab-warnings']");
+  if (tabBtn) {
+    tabBtn.click();
+  }
+  
+  showToast(`Advertência registrada para ${m.fullName}`, "error");
 }
 
 // 3. RENDERS DO RECRUTAMENTO
