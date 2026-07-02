@@ -287,32 +287,161 @@ const defaultState = {
   ]
 };
 
+// ==================== CONFIGURAÇÃO SUPABASE ====================
+const SUPABASE_URL = "https://vxzybulfpazbgqtpbjso.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_UaACdpLNOxW3qX1vA2Tr5w_bMgUpw2G";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Objeto de Estado da Aplicação
-let state = {};
+let state = {
+  settings: {},
+  members: [],
+  vehicles: [],
+  equipment: [],
+  properties: [],
+  actions: [],
+  operations: [],
+  recruitment: [],
+  meetings: [],
+  activities: [],
+  transactions: []
+};
 
 // ==================== UTILITÁRIOS DO ESTADO ====================
-function loadState() {
-  const localData = localStorage.getItem("mafia_dashboard_state_v1");
-  if (localData) {
-    try {
-      state = JSON.parse(localData);
-      if (!state.actions) {
-        state.actions = JSON.parse(JSON.stringify(defaultState.actions || []));
-        saveState();
-      }
-    } catch (e) {
-      console.error("Erro ao ler localStorage, reiniciando dados de fábrica...", e);
-      state = JSON.parse(JSON.stringify(defaultState));
-      saveState();
+async function loadState() {
+  try {
+    const [
+      { data: settings },
+      { data: members },
+      { data: vehicles },
+      { data: equipment },
+      { data: properties },
+      { data: actions },
+      { data: operations },
+      { data: recruitment },
+      { data: meetings },
+      { data: activities },
+      { data: transactions }
+    ] = await Promise.all([
+      supabaseClient.from("settings").select("*").eq("id", 1).maybeSingle(),
+      supabaseClient.from("members").select("*"),
+      supabaseClient.from("vehicles").select("*"),
+      supabaseClient.from("equipment").select("*"),
+      supabaseClient.from("properties").select("*"),
+      supabaseClient.from("actions").select("*"),
+      supabaseClient.from("operations").select("*"),
+      supabaseClient.from("recruitment").select("*"),
+      supabaseClient.from("meetings").select("*"),
+      supabaseClient.from("activities").select("*").order("id", { ascending: false }).limit(50),
+      supabaseClient.from("transactions").select("*")
+    ]);
+
+    state.settings = settings ? {
+      clubName: settings.club_name,
+      adminName: settings.admin_name,
+      adminAvatar: settings.admin_avatar
+    } : defaultState.settings;
+
+    state.members = members && members.length > 0 ? members : defaultState.members;
+    state.vehicles = vehicles && vehicles.length > 0 ? vehicles : defaultState.vehicles;
+    state.equipment = equipment && equipment.length > 0 ? equipment : defaultState.equipment;
+    state.properties = properties && properties.length > 0 ? properties : defaultState.properties;
+    state.actions = actions && actions.length > 0 ? actions : defaultState.actions;
+    state.operations = operations && operations.length > 0 ? operations : defaultState.operations;
+    state.recruitment = recruitment && recruitment.length > 0 ? recruitment : defaultState.recruitment || [];
+    state.meetings = meetings && meetings.length > 0 ? meetings : defaultState.meetings;
+    state.activities = activities && activities.length > 0 ? activities : defaultState.activities;
+    
+    state.transactions = transactions && transactions.length > 0 
+      ? transactions.map(t => ({ date: t.date, type: t.type, desc: t.desc_text, member: t.member, amount: Number(t.amount) }))
+      : defaultState.transactions;
+
+    if (!settings) {
+      await saveState();
     }
-  } else {
-    state = JSON.parse(JSON.stringify(defaultState));
-    saveState();
+  } catch (err) {
+    console.error("Erro ao ler dados do Supabase, revertendo para localStorage/fábrica...", err);
+    const localData = localStorage.getItem("mafia_dashboard_state_v1");
+    if (localData) {
+      state = JSON.parse(localData);
+    } else {
+      state = JSON.parse(JSON.stringify(defaultState));
+    }
   }
 }
 
-function saveState() {
+async function saveState(onlyTable = null) {
   localStorage.setItem("mafia_dashboard_state_v1", JSON.stringify(state));
+
+  try {
+    if (!onlyTable || onlyTable === "settings") {
+      await supabaseClient.from("settings").upsert({
+        id: 1,
+        club_name: state.settings.clubName,
+        admin_name: state.settings.adminName,
+        admin_avatar: state.settings.adminAvatar
+      });
+    }
+
+    if (!onlyTable || onlyTable === "members") {
+      await supabaseClient.from("members").upsert(state.members);
+    }
+
+    if (!onlyTable || onlyTable === "vehicles") {
+      await supabaseClient.from("vehicles").upsert(state.vehicles);
+    }
+
+    if (!onlyTable || onlyTable === "equipment") {
+      await supabaseClient.from("equipment").upsert(state.equipment);
+    }
+
+    if (!onlyTable || onlyTable === "properties") {
+      await supabaseClient.from("properties").upsert(state.properties);
+    }
+
+    if (!onlyTable || onlyTable === "actions") {
+      await supabaseClient.from("actions").upsert(state.actions);
+    }
+
+    if (!onlyTable || onlyTable === "operations") {
+      await supabaseClient.from("operations").upsert(state.operations);
+    }
+
+    if (!onlyTable || onlyTable === "recruitment") {
+      await supabaseClient.from("recruitment").upsert(state.recruitment);
+    }
+
+    if (!onlyTable || onlyTable === "meetings") {
+      state.meetings.forEach((m, idx) => {
+        if (!m.id) m.id = "MT-" + idx + "-" + Date.now().toString().slice(-4);
+      });
+      await supabaseClient.from("meetings").upsert(state.meetings);
+    }
+
+    if (!onlyTable || onlyTable === "activities") {
+      if (state.activities.length > 0) {
+        const latest = state.activities[0];
+        await supabaseClient.from("activities").insert({
+          time: latest.time,
+          type: latest.type,
+          text: latest.text
+        });
+      }
+    }
+
+    if (!onlyTable || onlyTable === "transactions") {
+      const formattedTrans = state.transactions.map(t => ({
+        date: t.date,
+        type: t.type,
+        desc_text: t.desc,
+        member: t.member,
+        amount: t.amount
+      }));
+      await supabaseClient.from("transactions").upsert(formattedTrans);
+    }
+  } catch (err) {
+    console.error("Falha ao salvar no Supabase:", err);
+  }
 }
 
 function logActivity(text, type = "Sistema") {
@@ -322,11 +451,11 @@ function logActivity(text, type = "Sistema") {
 
   if (state.activities.length > 50) state.activities.pop();
 
-  saveState();
+  saveState("activities");
 }
 
 // ==================== INICIALIZAÇÕES DO DOM ====================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   // ── Pré-carregamento do mapa satélite ──────────────────────────────────
   // Força o browser a baixar e cachear a imagem imediatamente,
   // antes do usuário abrir qualquer modal ou módulo do mapa.
@@ -340,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   // ───────────────────────────────────────────────────────────────────────
 
-  loadState();
+  await loadState();
   initClock();
   initSidebarNavigation();
   initModals();
@@ -1382,7 +1511,7 @@ window.toggleMemberStatus = function (memberId) {
   showToast(`Status de ${m.fullName} alterado para ${statusLabel}`, "success");
 }
 
-window.deleteMemberDossier = function (memberId) {
+window.deleteMemberDossier = async function (memberId) {
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
 
@@ -1393,7 +1522,18 @@ window.deleteMemberDossier = function (memberId) {
       if (idx !== -1) {
         state.members.splice(idx, 1);
 
-        // Remover veículos da frota global pertencentes ao membro excluído
+        try {
+          await supabaseClient.from("members").delete().eq("id", memberId);
+          // Remover veículos da frota global pertencentes ao membro excluído no banco
+          const orphanPlates = state.vehicles.filter(v => v.owner === m.fullName).map(v => v.plate);
+          for (let pl of orphanPlates) {
+            await supabaseClient.from("vehicles").delete().eq("plate", pl);
+          }
+        } catch (err) {
+          console.error("Erro ao excluir do Supabase:", err);
+        }
+
+        // Remover veículos da frota global pertencentes ao membro excluído localmente
         state.vehicles = state.vehicles.filter(v => v.owner !== m.fullName);
 
         // Se for o membro ativo, focar em outro membro não excluído
@@ -1403,7 +1543,7 @@ window.deleteMemberDossier = function (memberId) {
         }
 
         logActivity(`Dossiê de ${m.fullName} excluído definitivamente do sindicato.`, "Membro");
-        saveState();
+        saveState("activities");
         renderMembersList();
         showToast(`Dossiê de ${m.fullName} removido definitivamente`, "error");
       }
@@ -1419,7 +1559,7 @@ window.deleteMemberDossier = function (memberId) {
       });
 
       logActivity(`Dossiê de ${m.fullName} arquivado na lixeira do sindicato.`, "Membro");
-      saveState();
+      saveState("members");
 
       // Selecionar outro membro operacional
       const remaining = state.members.filter(member => member.status !== "Archived");
@@ -1919,14 +2059,19 @@ function renderVehicles() {
   });
 }
 
-window.deleteVehicle = function (index) {
+window.deleteVehicle = async function (index) {
   const v = state.vehicles[index];
   if (!v) return;
 
   if (confirm(`Remover veículo: ${v.model} [${v.plate}] dos registros gerais?`)) {
+    try {
+      await supabaseClient.from("vehicles").delete().eq("plate", v.plate);
+    } catch (err) {
+      console.error("Erro ao excluir veículo no Supabase:", err);
+    }
     logActivity(`Veículo ${v.model} [${v.plate}] excluído do pátio do clube.`, "Sistema");
     state.vehicles.splice(index, 1);
-    saveState();
+    saveState("vehicles");
     renderVehicles();
     showToast("Registro do veículo apagado", "error");
   }
@@ -2002,14 +2147,19 @@ window.adjustEquipmentQty = function (index, delta) {
   renderEquipment();
 }
 
-window.deleteEquipment = function (index) {
+window.deleteEquipment = async function (index) {
   const item = state.equipment[index];
   if (!item) return;
 
   if (confirm(`Remover item ${item.name} do armaria?`)) {
+    try {
+      await supabaseClient.from("equipment").delete().eq("name", item.name);
+    } catch (err) {
+      console.error("Erro ao excluir equipamento no Supabase:", err);
+    }
     logActivity(`Armamento ${item.name} removido do inventário permanente.`, "Sistema");
     state.equipment.splice(index, 1);
-    saveState();
+    saveState("equipment");
     renderEquipment();
     showToast("Item excluído do armaria", "error");
   }
@@ -3566,14 +3716,19 @@ window.renderActions = function () {
   });
 }
 
-window.deleteAction = function (id) {
+window.deleteAction = async function (id) {
   if (confirm("Tem certeza que deseja excluir esta ação permanentemente do histórico? Isso não pode ser desfeito.")) {
     const actionIndex = state.actions.findIndex(act => act.id === id);
     if (actionIndex !== -1) {
       const act = state.actions[actionIndex];
       state.actions.splice(actionIndex, 1);
+      try {
+        await supabaseClient.from("actions").delete().eq("id", id);
+      } catch (err) {
+        console.error("Erro ao deletar ação no Supabase:", err);
+      }
       logActivity("Excluiu ação de campo definitivamente: " + act.type + " de " + act.date, "Operação");
-      saveState();
+      saveState("activities");
       renderActions();
       showToast("Ação excluída com sucesso", "success");
     }
@@ -4272,14 +4427,19 @@ window.restoreOperation = function (id) {
   showToast(`Operação ${op.title} restaurada!`, "success");
 };
 
-window.deleteOperation = function (id) {
+window.deleteOperation = async function (id) {
   if (confirm("Tem certeza que deseja excluir esta operação permanentemente do histórico? Isso não pode ser desfeito.")) {
     const opIndex = state.operations.findIndex(o => o.id === id);
     if (opIndex !== -1) {
       const op = state.operations[opIndex];
       state.operations.splice(opIndex, 1);
+      try {
+        await supabaseClient.from("operations").delete().eq("id", id);
+      } catch (err) {
+        console.error("Erro ao excluir operação no Supabase:", err);
+      }
       logActivity(`Excluiu permanentemente a Operação: ${op.title}`, "Operação");
-      saveState();
+      saveState("activities");
       renderOperations();
       showToast("Operação excluída com sucesso", "success");
     }
