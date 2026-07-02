@@ -322,17 +322,17 @@ async function loadState() {
 
   try {
     const [
-      { data: settings },
-      { data: members },
-      { data: vehicles },
-      { data: equipment },
-      { data: properties },
-      { data: actions },
-      { data: operations },
-      { data: recruitment },
-      { data: meetings },
-      { data: activities },
-      { data: transactions }
+      resSettings,
+      resMembers,
+      resVehicles,
+      resEquipment,
+      resProperties,
+      resActions,
+      resOperations,
+      resRecruitment,
+      resMeetings,
+      resActivities,
+      resTransactions
     ] = await Promise.all([
       supabaseClient.from("settings").select("*").eq("id", 1).maybeSingle(),
       supabaseClient.from("members").select("*"),
@@ -346,6 +346,30 @@ async function loadState() {
       supabaseClient.from("activities").select("*").order("id", { ascending: false }).limit(50),
       supabaseClient.from("transactions").select("*")
     ]);
+
+    if (resSettings.error) console.error("Supabase settings error:", resSettings.error);
+    if (resMembers.error) console.error("Supabase members error:", resMembers.error);
+    if (resVehicles.error) console.error("Supabase vehicles error:", resVehicles.error);
+    if (resEquipment.error) console.error("Supabase equipment error:", resEquipment.error);
+    if (resProperties.error) console.error("Supabase properties error:", resProperties.error);
+    if (resActions.error) console.error("Supabase actions error:", resActions.error);
+    if (resOperations.error) console.error("Supabase operations error:", resOperations.error);
+    if (resRecruitment.error) console.error("Supabase recruitment error:", resRecruitment.error);
+    if (resMeetings.error) console.error("Supabase meetings error:", resMeetings.error);
+    if (resActivities.error) console.error("Supabase activities error:", resActivities.error);
+    if (resTransactions.error) console.error("Supabase transactions error:", resTransactions.error);
+
+    const settings = resSettings.data;
+    const members = resMembers.data;
+    const vehicles = resVehicles.data;
+    const equipment = resEquipment.data;
+    const properties = resProperties.data;
+    const actions = resActions.data;
+    const operations = resOperations.data;
+    const recruitment = resRecruitment.data;
+    const meetings = resMeetings.data;
+    const activities = resActivities.data;
+    const transactions = resTransactions.data;
 
     // 2. Se as configurações existem no Supabase, o banco está populado -> usa os dados do banco
     if (settings) {
@@ -393,57 +417,67 @@ async function saveState(onlyTable = null) {
 
   try {
     if (!onlyTable || onlyTable === "settings") {
-      await supabaseClient.from("settings").upsert({
+      const { error } = await supabaseClient.from("settings").upsert({
         id: 1,
         club_name: state.settings.clubName,
         admin_name: state.settings.adminName,
         admin_avatar: state.settings.adminAvatar
       });
+      if (error) console.error("Supabase upsert settings error:", error);
     }
 
     if (!onlyTable || onlyTable === "members") {
-      await supabaseClient.from("members").upsert(state.members);
+      const { error } = await supabaseClient.from("members").upsert(state.members);
+      if (error) console.error("Supabase upsert members error:", error);
     }
 
     if (!onlyTable || onlyTable === "vehicles") {
-      await supabaseClient.from("vehicles").upsert(state.vehicles);
+      const { error } = await supabaseClient.from("vehicles").upsert(state.vehicles);
+      if (error) console.error("Supabase upsert vehicles error:", error);
     }
 
     if (!onlyTable || onlyTable === "equipment") {
-      await supabaseClient.from("equipment").upsert(state.equipment);
+      const { error } = await supabaseClient.from("equipment").upsert(state.equipment);
+      if (error) console.error("Supabase upsert equipment error:", error);
     }
 
     if (!onlyTable || onlyTable === "properties") {
-      await supabaseClient.from("properties").upsert(state.properties);
+      const { error } = await supabaseClient.from("properties").upsert(state.properties);
+      if (error) console.error("Supabase upsert properties error:", error);
     }
 
     if (!onlyTable || onlyTable === "actions") {
-      await supabaseClient.from("actions").upsert(state.actions);
+      const { error } = await supabaseClient.from("actions").upsert(state.actions);
+      if (error) console.error("Supabase upsert actions error:", error);
     }
 
     if (!onlyTable || onlyTable === "operations") {
-      await supabaseClient.from("operations").upsert(state.operations);
+      const { error } = await supabaseClient.from("operations").upsert(state.operations);
+      if (error) console.error("Supabase upsert operations error:", error);
     }
 
     if (!onlyTable || onlyTable === "recruitment") {
-      await supabaseClient.from("recruitment").upsert(state.recruitment);
+      const { error } = await supabaseClient.from("recruitment").upsert(state.recruitment);
+      if (error) console.error("Supabase upsert recruitment error:", error);
     }
 
     if (!onlyTable || onlyTable === "meetings") {
       state.meetings.forEach((m, idx) => {
         if (!m.id) m.id = "MT-" + idx + "-" + Date.now().toString().slice(-4);
       });
-      await supabaseClient.from("meetings").upsert(state.meetings);
+      const { error } = await supabaseClient.from("meetings").upsert(state.meetings);
+      if (error) console.error("Supabase upsert meetings error:", error);
     }
 
     if (!onlyTable || onlyTable === "activities") {
       if (state.activities.length > 0) {
         const latest = state.activities[0];
-        await supabaseClient.from("activities").insert({
+        const { error } = await supabaseClient.from("activities").insert({
           time: latest.time,
           type: latest.type,
           text: latest.text
         });
+        if (error) console.error("Supabase insert activities error:", error);
       }
     }
 
@@ -455,7 +489,8 @@ async function saveState(onlyTable = null) {
         member: t.member,
         amount: t.amount
       }));
-      await supabaseClient.from("transactions").upsert(formattedTrans);
+      const { error } = await supabaseClient.from("transactions").upsert(formattedTrans);
+      if (error) console.error("Supabase upsert transactions error:", error);
     }
   } catch (err) {
     console.error("Falha ao salvar no Supabase:", err);
