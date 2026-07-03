@@ -2072,7 +2072,7 @@ input:checked + .slider:before {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 2000;
+  z-index: 999999;
   display: flex;
   flex-direction: column;
   gap: 10px;
