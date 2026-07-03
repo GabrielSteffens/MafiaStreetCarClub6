@@ -561,11 +561,11 @@ window.handleAuthSubmit = async function (e) {
       applySettingsUI();
       renderModule("dashboard");
     } else {
-      // Exige chave secreta para criação de administrador
+      // Exige chave secreta para criação de diretoria
       if (role === "admin") {
         const correctAdminKey = "MAFIA2026"; // Senha padrão secreta exigida
         if (adminKey !== correctAdminKey) {
-          showToast("Chave de Administrador incorreta.", "error");
+          showToast("Chave da Diretoria incorreta.", "error");
           btnSubmit.disabled = false;
           btnSubmit.innerHTML = originalHtml;
           return;
@@ -626,7 +626,7 @@ window.logout = function () {
 
 function checkAdmin() {
   if (state.currentUser && state.currentUser.role === "viewer") {
-    showToast("Acesso restrito: Apenas administradores podem modificar dados.", "error");
+    showToast("Acesso restrito: Apenas a Diretoria pode modificar dados.", "error");
     return false;
   }
   return true;
@@ -639,7 +639,7 @@ function applyRolePermissions() {
   const miniRole = document.getElementById("admin-mini-role");
   if (state.currentUser) {
     if (miniName) miniName.innerText = state.currentUser.username;
-    if (miniRole) miniRole.innerText = state.currentUser.role === 'admin' ? 'Administrador' : 'Visualizador';
+    if (miniRole) miniRole.innerText = state.currentUser.role === 'admin' ? 'Diretoria' : 'Membro';
   }
 
   if (isViewer) {
@@ -931,7 +931,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     btnClearActivities.addEventListener("click", () => {
       if (!checkAdmin()) return;
       state.activities = [];
-      logActivity("Histórico de auditoria geral limpo pelo administrador.", "Sistema");
+      logActivity("Histórico de auditoria geral limpo pela Diretoria.", "Sistema");
       renderActivities();
       showToast("Histórico limpo com sucesso", "success");
     });
@@ -3027,7 +3027,7 @@ function initFormSubmissions() {
 
           m.history.unshift({
             time: new Date().toISOString().slice(0, 16).replace("T", " "),
-            desc: "Dossiê atualizado pelo administrador."
+            desc: "Dossiê atualizado pela Diretoria."
           });
 
           // Sincronizar a frota de veículos
