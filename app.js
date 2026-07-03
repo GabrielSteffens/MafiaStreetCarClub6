@@ -472,6 +472,7 @@ let authMode = "login"; // "login" ou "register"
 
 window.toggleAuthMode = function () {
   const registerRoleGroup = document.getElementById("register-role-group");
+  const adminKeyGroup = document.getElementById("admin-key-group");
   const btnText = document.getElementById("auth-btn-text");
   const toggleLink = document.getElementById("auth-toggle-link");
   const footerPrompt = document.getElementById("auth-footer-prompt");
@@ -482,12 +483,32 @@ window.toggleAuthMode = function () {
     if (btnText) btnText.innerText = "Registrar e Entrar";
     if (toggleLink) toggleLink.innerText = "Entrar";
     if (footerPrompt) footerPrompt.innerText = "Já tem uma conta?";
+    window.handleRoleChange();
   } else {
     authMode = "login";
     if (registerRoleGroup) registerRoleGroup.style.display = "none";
+    if (adminKeyGroup) adminKeyGroup.style.display = "none";
     if (btnText) btnText.innerText = "Entrar";
     if (toggleLink) toggleLink.innerText = "Cadastrar-se";
     if (footerPrompt) footerPrompt.innerText = "Não tem uma conta?";
+  }
+};
+
+window.handleRoleChange = function () {
+  const roleSelect = document.getElementById("login-role");
+  const adminKeyGroup = document.getElementById("admin-key-group");
+  const adminKeyInput = document.getElementById("login-admin-key");
+  if (roleSelect && adminKeyGroup) {
+    if (roleSelect.value === "admin" && authMode === "register") {
+      adminKeyGroup.style.display = "block";
+      if (adminKeyInput) adminKeyInput.required = true;
+    } else {
+      adminKeyGroup.style.display = "none";
+      if (adminKeyInput) {
+        adminKeyInput.required = false;
+        adminKeyInput.value = "";
+      }
+    }
   }
 };
 
@@ -496,6 +517,8 @@ window.handleAuthSubmit = async function (e) {
   const username = document.getElementById("login-username").value.trim().toLowerCase();
   const password = document.getElementById("login-password").value;
   const role = document.getElementById("login-role").value;
+  const adminKeyInput = document.getElementById("login-admin-key");
+  const adminKey = adminKeyInput ? adminKeyInput.value.trim() : "";
 
   if (!username || !password) return;
 
@@ -538,6 +561,17 @@ window.handleAuthSubmit = async function (e) {
       applySettingsUI();
       renderModule("dashboard");
     } else {
+      // Exige chave secreta para criação de administrador
+      if (role === "admin") {
+        const correctAdminKey = "MAFIA2026"; // Senha padrão secreta exigida
+        if (adminKey !== correctAdminKey) {
+          showToast("Chave de Administrador incorreta.", "error");
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = originalHtml;
+          return;
+        }
+      }
+
       const { data: existingUser } = await supabaseClient
         .from("users")
         .select("username")
