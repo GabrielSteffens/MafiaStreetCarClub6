@@ -467,6 +467,182 @@ const emptyState = {
   transactions: []
 };
 
+// ==================== CONTROLE DE ACESSO E CONTAS ====================
+let authMode = "login"; // "login" ou "register"
+
+window.toggleAuthMode = function () {
+  const registerRoleGroup = document.getElementById("register-role-group");
+  const btnText = document.getElementById("auth-btn-text");
+  const toggleLink = document.getElementById("auth-toggle-link");
+  const footerPrompt = document.getElementById("auth-footer-prompt");
+
+  if (authMode === "login") {
+    authMode = "register";
+    if (registerRoleGroup) registerRoleGroup.style.display = "block";
+    if (btnText) btnText.innerText = "Registrar e Entrar";
+    if (toggleLink) toggleLink.innerText = "Entrar";
+    if (footerPrompt) footerPrompt.innerText = "Já tem uma conta?";
+  } else {
+    authMode = "login";
+    if (registerRoleGroup) registerRoleGroup.style.display = "none";
+    if (btnText) btnText.innerText = "Entrar";
+    if (toggleLink) toggleLink.innerText = "Cadastrar-se";
+    if (footerPrompt) footerPrompt.innerText = "Não tem uma conta?";
+  }
+};
+
+window.handleAuthSubmit = async function (e) {
+  e.preventDefault();
+  const username = document.getElementById("login-username").value.trim().toLowerCase();
+  const password = document.getElementById("login-password").value;
+  const role = document.getElementById("login-role").value;
+
+  if (!username || !password) return;
+
+  const btnSubmit = document.getElementById("btn-auth-submit");
+  const originalHtml = btnSubmit.innerHTML;
+  btnSubmit.disabled = true;
+  btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processando...`;
+
+  try {
+    if (authMode === "login") {
+      const { data: user, error } = await supabaseClient
+        .from("users")
+        .select("*")
+        .eq("username", username)
+        .eq("password", password)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Erro ao fazer login:", error);
+        showToast("Erro de conexão com o banco de dados.", "error");
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalHtml;
+        return;
+      }
+
+      if (!user) {
+        showToast("Usuário ou senha incorretos.", "error");
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalHtml;
+        return;
+      }
+
+      state.currentUser = user;
+      localStorage.setItem("mafia_auth_session", JSON.stringify(user));
+      showToast(`Bem-vindo, ${user.username}!`, "success");
+      
+      document.getElementById("login-screen").classList.add("hidden");
+      await loadState();
+      applyRolePermissions();
+      applySettingsUI();
+      renderModule("dashboard");
+    } else {
+      const { data: existingUser } = await supabaseClient
+        .from("users")
+        .select("username")
+        .eq("username", username)
+        .maybeSingle();
+
+      if (existingUser) {
+        showToast("Este nome de usuário já está em uso.", "error");
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalHtml;
+        return;
+      }
+
+      const newUser = { username, password, role };
+      const { error: insertError } = await supabaseClient.from("users").insert(newUser);
+
+      if (insertError) {
+        console.error("Erro ao registrar:", insertError);
+        showToast("Erro ao criar conta no banco de dados.", "error");
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalHtml;
+        return;
+      }
+
+      state.currentUser = newUser;
+      localStorage.setItem("mafia_auth_session", JSON.stringify(newUser));
+      showToast(`Conta criada com sucesso! Bem-vindo, ${newUser.username}!`, "success");
+      
+      document.getElementById("login-screen").classList.add("hidden");
+      await loadState();
+      applyRolePermissions();
+      applySettingsUI();
+      renderModule("dashboard");
+    }
+  } catch (err) {
+    console.error("Erro de autenticação:", err);
+    showToast("Falha ao processar autenticação.", "error");
+  } finally {
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = originalHtml;
+  }
+};
+
+window.logout = function () {
+  localStorage.removeItem("mafia_auth_session");
+  state.currentUser = null;
+  document.getElementById("login-username").value = "";
+  document.getElementById("login-password").value = "";
+  document.getElementById("login-screen").classList.remove("hidden");
+  showToast("Sessão encerrada com sucesso.", "success");
+};
+
+function checkAdmin() {
+  if (state.currentUser && state.currentUser.role === "viewer") {
+    showToast("Acesso restrito: Apenas administradores podem modificar dados.", "error");
+    return false;
+  }
+  return true;
+}
+
+function applyRolePermissions() {
+  const isViewer = (state.currentUser && state.currentUser.role === 'viewer');
+  
+  const miniName = document.getElementById("admin-mini-name");
+  const miniRole = document.getElementById("admin-mini-role");
+  if (state.currentUser) {
+    if (miniName) miniName.innerText = state.currentUser.username;
+    if (miniRole) miniRole.innerText = state.currentUser.role === 'admin' ? 'Administrador' : 'Visualizador';
+  }
+
+  if (isViewer) {
+    document.body.classList.add('viewer-mode');
+    
+    const navTreasury = document.getElementById("nav-treasury");
+    const topbarTreasury = document.getElementById("topbar-treasury-container");
+    const dashTreasury = document.getElementById("dash-treasury-card");
+    if (navTreasury) navTreasury.style.display = "none";
+    if (topbarTreasury) topbarTreasury.style.display = "none";
+    if (dashTreasury) dashTreasury.style.display = "none";
+
+    const adminButtons = [
+      "btn-open-new-member",
+      "btn-open-new-recruit",
+      "btn-open-new-transaction",
+      "btn-open-new-vehicle",
+      "btn-open-new-equipment",
+      "btn-open-new-meeting",
+      "btn-open-new-property"
+    ];
+    adminButtons.forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.add("admin-only");
+    });
+  } else {
+    document.body.classList.remove('viewer-mode');
+    
+    const navTreasury = document.getElementById("nav-treasury");
+    const topbarTreasury = document.getElementById("topbar-treasury-container");
+    const dashTreasury = document.getElementById("dash-treasury-card");
+    if (navTreasury) navTreasury.style.display = "";
+    if (topbarTreasury) topbarTreasury.style.display = "";
+    if (dashTreasury) dashTreasury.style.display = "";
+  }
+}
+
 // ==================== UTILITÁRIOS DO ESTADO ====================
 async function loadState() {
   // 1. Tenta carregar do localStorage primeiro para servir de cache inicial / migração
@@ -691,7 +867,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   // ───────────────────────────────────────────────────────────────────────
 
-  await loadState();
   initClock();
   initSidebarNavigation();
   initModals();
@@ -720,6 +895,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnClearActivities = document.getElementById("btn-clear-activities");
   if (btnClearActivities) {
     btnClearActivities.addEventListener("click", () => {
+      if (!checkAdmin()) return;
       state.activities = [];
       logActivity("Histórico de auditoria geral limpo pelo administrador.", "Sistema");
       renderActivities();
@@ -743,9 +919,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (btnPdf) btnPdf.addEventListener("click", () => showToast("Compilando relatórios e exportando para PDF...", "success"));
   if (btnExcel) btnExcel.addEventListener("click", () => showToast("Exportando planilhas para arquivos XLS...", "success"));
 
-  // Aplicar dados visuais iniciais na interface
-  applySettingsUI();
-
   // Inicializar interações avançadas de arrastar/zoom nos mapas
   initMapsDraggableAndWheelZoom();
 
@@ -763,13 +936,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (e.button !== 0) return;
       // Registrar coordenadas apenas se o mouse não se deslocou mais de 5px (indicativo de clique rápido)
       if (Math.abs(e.clientX - downX) < 5 && Math.abs(e.clientY - downY) < 5) {
+        if (!checkAdmin()) return;
         pickPropertyCoords(e);
       }
     });
   }
 
-  // Iniciar na aba Painel (Dashboard)
-  renderModule("dashboard");
+  // Verifica se existe sessão ativa antes de inicializar o painel
+  const session = localStorage.getItem("mafia_auth_session");
+  if (session) {
+    try {
+      state.currentUser = JSON.parse(session);
+      document.getElementById("login-screen").classList.add("hidden");
+      await loadState();
+      applyRolePermissions();
+      applySettingsUI();
+      renderModule("dashboard");
+    } catch (e) {
+      console.error("Erro ao ler sessão local", e);
+      document.getElementById("login-screen").classList.remove("hidden");
+    }
+  } else {
+    document.getElementById("login-screen").classList.remove("hidden");
+  }
 });
 
 // Relógio do topo
@@ -1329,12 +1518,12 @@ function renderMemberDetail() {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 10px; flex-wrap: wrap;">
           <div class="profile-hero-rank">${rankTranslations[m.rank]}</div>
           <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary btn-sm" onclick="toggleMemberStatus('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem;">
+            <button class="btn btn-secondary btn-sm admin-only" onclick="toggleMemberStatus('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem;">
               <i class="fas ${m.status === 'Active' ? 'fa-user-slash' : m.status === 'Archived' ? 'fa-undo' : 'fa-user-check'}"></i> 
               ${m.status === 'Active' ? 'Desativar' : m.status === 'Archived' ? 'Restaurar' : 'Ativar'}
             </button>
-            <button class="btn btn-primary btn-sm" onclick="editMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: linear-gradient(135deg, #b71c1c 0%, #5f0909 100%);"><i class="fas fa-edit"></i> Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: #c62828;">
+            <button class="btn btn-primary btn-sm admin-only" onclick="editMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: linear-gradient(135deg, #b71c1c 0%, #5f0909 100%);"><i class="fas fa-edit"></i> Editar</button>
+            <button class="btn btn-danger btn-sm admin-only" onclick="deleteMemberDossier('${m.id}')" style="padding: 6px 12px; font-size: 0.75rem; background: #c62828;">
               <i class="fas ${m.status === 'Archived' ? 'fa-trash-alt' : 'fa-archive'}"></i> 
               ${m.status === 'Archived' ? 'Excluir Definitivamente' : 'Excluir'}
             </button>
@@ -1615,6 +1804,7 @@ function renderMemberDetail() {
 }
 
 window.editMemberDossier = function (memberId) {
+  if (!checkAdmin()) return;
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
 
@@ -1710,6 +1900,7 @@ window.editMemberDossier = function (memberId) {
 }
 
 window.toggleMemberStatus = function (memberId) {
+  if (!checkAdmin()) return;
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
 
@@ -1734,6 +1925,7 @@ window.toggleMemberStatus = function (memberId) {
 }
 
 window.deleteMemberDossier = async function (memberId) {
+  if (!checkAdmin()) return;
   const m = state.members.find(member => member.id === memberId);
   if (!m) return;
 
@@ -1943,7 +2135,7 @@ function renderRecruitment() {
         </div>
         
         ${r.status === "Pending" ? `
-          <div class="candidate-actions">
+          <div class="candidate-actions admin-only">
             <button class="btn btn-success btn-sm" onclick="transitionRecruit('${r.id}', 'Approved')"><i class="fas fa-check"></i> Aprovar</button>
             <button class="btn btn-danger btn-sm" onclick="transitionRecruit('${r.id}', 'Rejected')"><i class="fas fa-times"></i> Rejeitar</button>
           </div>
@@ -1960,6 +2152,7 @@ function renderRecruitment() {
 
 // Transição do Recruta para Membro
 window.transitionRecruit = function (recruitId, newStatus) {
+  if (!checkAdmin()) return;
   const r = state.recruitment.find(cand => cand.id === recruitId);
   if (!r) return;
 
@@ -2063,20 +2256,20 @@ function renderOperations() {
     if (op.status !== "Completed" && op.status !== "Cancelled") {
       row1Buttons = `
         <button class="btn btn-secondary btn-sm" onclick="viewOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9;"><i class="fas fa-eye"></i> Detalhes</button>
-        <button class="btn btn-secondary btn-sm" onclick="editOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff;"><i class="fas fa-edit"></i> Editar</button>
+        <button class="btn btn-secondary btn-sm admin-only" onclick="editOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff;"><i class="fas fa-edit"></i> Editar</button>
       `;
       row2Buttons = `
-        <button class="btn btn-success btn-sm" onclick="changeOpStatus('${op.id}', 'Completed')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem;"><i class="fas fa-check-circle"></i> Concluir</button>
-        <button class="btn btn-danger btn-sm" onclick="changeOpStatus('${op.id}', 'Cancelled')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem;"><i class="fas fa-ban"></i> Cancelar</button>
+        <button class="btn btn-success btn-sm admin-only" onclick="changeOpStatus('${op.id}', 'Completed')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem;"><i class="fas fa-check-circle"></i> Concluir</button>
+        <button class="btn btn-danger btn-sm admin-only" onclick="changeOpStatus('${op.id}', 'Cancelled')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem;"><i class="fas fa-ban"></i> Cancelar</button>
       `;
     } else {
       row1Buttons = `
         <button class="btn btn-secondary btn-sm" onclick="viewOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9;"><i class="fas fa-eye"></i> Detalhes</button>
-        <button class="btn btn-secondary btn-sm" onclick="editOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff;"><i class="fas fa-edit"></i> Editar</button>
+        <button class="btn btn-secondary btn-sm admin-only" onclick="editOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff;"><i class="fas fa-edit"></i> Editar</button>
       `;
       row2Buttons = `
-        <button class="btn btn-secondary btn-sm" onclick="restoreOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #00897b; border-color: #00796b; color: #fff;"><i class="fas fa-undo"></i> Restaurar</button>
-        <button class="btn btn-secondary btn-sm" onclick="deleteOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff;"><i class="fas fa-trash-alt"></i> Excluir</button>
+        <button class="btn btn-secondary btn-sm admin-only" onclick="restoreOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #00897b; border-color: #00796b; color: #fff;"><i class="fas fa-undo"></i> Restaurar</button>
+        <button class="btn btn-secondary btn-sm admin-only" onclick="deleteOperation('${op.id}')" style="flex: 1; padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff;"><i class="fas fa-trash-alt"></i> Excluir</button>
       `;
     }
 
@@ -2129,6 +2322,7 @@ function renderOperations() {
 }
 
 window.changeOpStatus = function (opId, nextStatus) {
+  if (!checkAdmin()) return;
   const op = state.operations.find(o => o.id === opId);
   if (!op) return;
 
@@ -2271,7 +2465,7 @@ function renderVehicles() {
           ${v.notes || 'Sem observações cadastradas.'}
         </p>
         
-        <div class="candidate-actions">
+        <div class="candidate-actions admin-only">
           <button class="btn btn-secondary btn-sm" onclick="editVehicleNotes(${index})"><i class="fas fa-edit"></i> Notas</button>
           <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${index})"><i class="fas fa-trash"></i> Excluir</button>
         </div>
@@ -2282,6 +2476,7 @@ function renderVehicles() {
 }
 
 window.deleteVehicle = async function (index) {
+  if (!checkAdmin()) return;
   const v = state.vehicles[index];
   if (!v) return;
 
@@ -2300,6 +2495,7 @@ window.deleteVehicle = async function (index) {
 }
 
 window.editVehicleNotes = function (index) {
+  if (!checkAdmin()) return;
   const v = state.vehicles[index];
   if (!v) return;
 
@@ -2348,7 +2544,7 @@ function renderEquipment() {
           <span class="candidate-detail-val">${item.assigned || 'Cofre Central'}</span>
         </div>
         
-        <div class="candidate-actions" style="margin-top: 15px;">
+        <div class="candidate-actions admin-only" style="margin-top: 15px;">
           <button class="btn btn-secondary btn-sm" onclick="adjustEquipmentQty(${index}, 1)"><i class="fas fa-plus"></i></button>
           <button class="btn btn-secondary btn-sm" onclick="adjustEquipmentQty(${index}, -1)"><i class="fas fa-minus"></i></button>
           <button class="btn btn-danger btn-sm" onclick="deleteEquipment(${index})"><i class="fas fa-trash"></i></button>
@@ -2360,6 +2556,7 @@ function renderEquipment() {
 }
 
 window.adjustEquipmentQty = function (index, delta) {
+  if (!checkAdmin()) return;
   const item = state.equipment[index];
   if (!item) return;
 
@@ -2370,6 +2567,7 @@ window.adjustEquipmentQty = function (index, delta) {
 }
 
 window.deleteEquipment = async function (index) {
+  if (!checkAdmin()) return;
   const item = state.equipment[index];
   if (!item) return;
 
@@ -2529,6 +2727,7 @@ function renderMeetings() {
 }
 
 window.toggleMeetingAttendance = function (idx) {
+  if (!checkAdmin()) return;
   const mt = state.meetings[idx];
   if (!mt) return;
 
@@ -3294,6 +3493,7 @@ window.pickPropertyCoords = function (event) {
 
 // ==================== CONFIGURAÇÕES E SALVAMENTO ====================
 function saveSettings() {
+  if (!checkAdmin()) return;
   const clubName = document.getElementById("setting-club-name").value;
   const adminName = document.getElementById("setting-admin-name").value;
   const adminAvatar = document.getElementById("setting-admin-avatar").value;
@@ -3326,6 +3526,7 @@ function applySettingsUI() {
 }
 
 function resetDatabase() {
+  if (!checkAdmin()) return;
   if (confirm("Deseja realmente apagar todas as alterações e restaurar os dados originais simulados? Isso apagará as fichas criadas.")) {
     state = JSON.parse(JSON.stringify(defaultState));
     saveState();
@@ -3890,13 +4091,13 @@ window.renderActions = function () {
         <button class="btn btn-secondary btn-sm" onclick="viewAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9; cursor: pointer;" title="Visualizar Detalhes">
           <i class="fas fa-eye"></i>
         </button>
-        <button class="btn btn-secondary btn-sm" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
+        <button class="btn btn-secondary btn-sm admin-only" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
           <i class="fas fa-edit"></i>
         </button>
-        <button class="btn btn-secondary btn-sm" onclick="restoreAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #00897b; border-color: #00796b; color: #fff; cursor: pointer;" title="Restaurar Ação">
+        <button class="btn btn-secondary btn-sm admin-only" onclick="restoreAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #00897b; border-color: #00796b; color: #fff; cursor: pointer;" title="Restaurar Ação">
           <i class="fas fa-undo"></i>
         </button>
-        <button class="btn btn-secondary btn-sm" onclick="deleteAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff; cursor: pointer;" title="Excluir Registro Definitivamente">
+        <button class="btn btn-secondary btn-sm admin-only" onclick="deleteAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #c62828; border-color: #b71c1c; color: #fff; cursor: pointer;" title="Excluir Registro Definitivamente">
           <i class="fas fa-trash-alt"></i>
         </button>
       `;
@@ -3905,10 +4106,10 @@ window.renderActions = function () {
         <button class="btn btn-secondary btn-sm" onclick="viewAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #37474f; border-color: #546e7a; color: #90caf9; cursor: pointer;" title="Visualizar Detalhes">
           <i class="fas fa-eye"></i>
         </button>
-        <button class="btn btn-secondary btn-sm" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
+        <button class="btn btn-secondary btn-sm admin-only" onclick="editAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: var(--accent-color); border-color: var(--accent-color-hover); color: #fff; cursor: pointer;" title="Editar Ação">
           <i class="fas fa-edit"></i>
         </button>
-        <button class="btn btn-secondary btn-sm" onclick="archiveAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #e65100; border-color: #ef6c00; color: #fff; cursor: pointer;" title="Arquivar Ação">
+        <button class="btn btn-secondary btn-sm admin-only" onclick="archiveAction('${act.id}')" style="padding: 4px 8px; font-size: 0.7rem; background: #e65100; border-color: #ef6c00; color: #fff; cursor: pointer;" title="Arquivar Ação">
           <i class="fas fa-archive"></i>
         </button>
       `;
@@ -3939,6 +4140,7 @@ window.renderActions = function () {
 }
 
 window.deleteAction = async function (id) {
+  if (!checkAdmin()) return;
   if (confirm("Tem certeza que deseja excluir esta ação permanentemente do histórico? Isso não pode ser desfeito.")) {
     const actionIndex = state.actions.findIndex(act => act.id === id);
     if (actionIndex !== -1) {
@@ -4032,6 +4234,7 @@ window.viewAction = function (id) {
 }
 
 window.editAction = function (id) {
+  if (!checkAdmin()) return;
   const act = state.actions.find(a => a.id === id);
   if (!act) return;
 
@@ -4318,6 +4521,7 @@ function checkMediaStorageUsage() {
 }
 
 window.archiveAction = function (id) {
+  if (!checkAdmin()) return;
   const act = state.actions.find(a => a.id === id);
   if (!act) return;
   act.status = "Archived";
@@ -4328,6 +4532,7 @@ window.archiveAction = function (id) {
 };
 
 window.restoreAction = function (id) {
+  if (!checkAdmin()) return;
   const act = state.actions.find(a => a.id === id);
   if (!act) return;
   act.status = "Active";
@@ -4588,6 +4793,7 @@ window.viewOperation = function (id) {
 };
 
 window.editOperation = function (id) {
+  if (!checkAdmin()) return;
   const op = state.operations.find(o => o.id === id);
   if (!op) return;
 
@@ -4637,6 +4843,7 @@ window.editOperation = function (id) {
 };
 
 window.restoreOperation = function (id) {
+  if (!checkAdmin()) return;
   const op = state.operations.find(o => o.id === id);
   if (!op) return;
   op.status = "Active";
@@ -4650,6 +4857,7 @@ window.restoreOperation = function (id) {
 };
 
 window.deleteOperation = async function (id) {
+  if (!checkAdmin()) return;
   if (confirm("Tem certeza que deseja excluir esta operação permanentemente do histórico? Isso não pode ser desfeito.")) {
     const opIndex = state.operations.findIndex(o => o.id === id);
     if (opIndex !== -1) {

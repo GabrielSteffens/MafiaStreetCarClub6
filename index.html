@@ -118,12 +118,17 @@
         </li>
       </ul>
       
-      <div class="sidebar-footer">
-        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" alt="Avatar Admin" class="user-avatar-mini" id="admin-mini-avatar">
-        <div class="user-info-mini">
-          <div class="user-name-mini" id="admin-mini-name">Vito Scaletta</div>
-          <div class="user-role-mini">Caporegime</div>
+      <div class="sidebar-footer" style="flex-wrap: wrap; gap: 10px; height: auto; padding: 15px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" alt="Avatar Admin" class="user-avatar-mini" id="admin-mini-avatar">
+          <div class="user-info-mini">
+            <div class="user-name-mini" id="admin-mini-name">Vito Scaletta</div>
+            <div class="user-role-mini" id="admin-mini-role">Caporegime</div>
+          </div>
         </div>
+        <button class="btn-logout" id="btn-logout-sidebar" onclick="logout()" style="width: 100%; margin-top: 5px; padding: 6px 10px; font-size: 0.75rem;">
+          <i class="fas fa-sign-out-alt"></i> Sair do Painel
+        </button>
       </div>
     </aside>
     
@@ -140,7 +145,7 @@
         
         <div class="topbar-right">
           <div class="topbar-stats">
-            <div class="topbar-stat-item">
+            <div class="topbar-stat-item" id="topbar-treasury-container">
               <span class="topbar-stat-label">Tesouraria</span>
               <span class="topbar-stat-value accent" id="topbar-treasury-val">$324,500</span>
             </div>
@@ -207,7 +212,7 @@
               </div>
             </div>
             
-            <div class="premium-card accent-header">
+            <div class="premium-card accent-header" id="dash-treasury-card">
               <div class="stat-card-header">
                 <span class="stat-card-title">Saldo da Tesouraria</span>
                 <div class="stat-card-icon"><i class="fas fa-wallet"></i></div>
@@ -1837,6 +1842,51 @@
       <div class="modal-body" style="padding: 0; display: flex; justify-content: center; align-items: center; background: transparent;">
         <img id="lightbox-img" src="" style="max-width: 100%; max-height: 80vh; border-radius: 8px; display: none; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
         <div id="lightbox-video-container" style="width: 80vw; max-width: 800px; display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN/REGISTER SCREEN OVERLAY -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <i class="fas fa-car-side"></i>MAFIA
+      </div>
+      <div class="login-subtitle">Street Car Club</div>
+      
+      <form id="login-form" onsubmit="handleAuthSubmit(event)">
+        <div class="login-form-group">
+          <label class="login-label">Nome de Usuário</label>
+          <div class="login-input-wrapper">
+            <i class="fas fa-user"></i>
+            <input type="text" id="login-username" class="login-input" placeholder="Digite seu usuário" required autocomplete="username">
+          </div>
+        </div>
+        
+        <div class="login-form-group">
+          <label class="login-label">Senha</label>
+          <div class="login-input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="login-password" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
+          </div>
+        </div>
+        
+        <div class="login-form-group" id="register-role-group" style="display: none;">
+          <label class="login-label">Nível de Acesso</label>
+          <select id="login-role" class="login-select">
+            <option value="viewer">Visualizador (Sem acesso a Tesouraria)</option>
+            <option value="admin">Administrador (Acesso Total)</option>
+          </select>
+        </div>
+        
+        <button type="submit" class="login-btn" id="btn-auth-submit">
+          <i class="fas fa-sign-in-alt"></i> <span id="auth-btn-text">Entrar</span>
+        </button>
+      </form>
+      
+      <div class="login-footer-text">
+        <span id="auth-footer-prompt">Não tem uma conta?</span>
+        <a class="login-link" id="auth-toggle-link" onclick="toggleAuthMode()">Cadastrar-se</a>
       </div>
     </div>
   </div>
